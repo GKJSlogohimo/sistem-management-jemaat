@@ -1,0 +1,16 @@
+node_modules
+.next
+out
+build
+coverage
+
+.env
+.env.*
+!.env.example
+
+pnpm-lock.yaml
+
+src/generated/prisma
+prisma/migrations
+
+public

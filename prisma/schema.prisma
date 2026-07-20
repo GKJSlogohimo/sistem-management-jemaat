@@ -1,0 +1,538 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// =========================================================
+// ENUM
+// =========================================================
+
+enum JenisUnitGereja {
+  INDUK
+  SUB_INDUK
+}
+
+enum JenisKelamin {
+  LAKI_LAKI
+  PEREMPUAN
+}
+
+enum StatusJemaat {
+  AKTIF
+  TIDAK_AKTIF
+}
+
+enum AlasanTidakAktif {
+  MENINGGAL
+  PINDAH_GEREJA
+  KELUAR_KEANGGOTAAN
+  DATA_GANDA
+  LAINNYA
+}
+
+enum PeranPengguna {
+  SUPER_ADMIN
+  ADMIN_INDUK
+  ADMIN_SUB_INDUK
+  SEKRETARIAT
+  PANITIA_EVENT
+  PETUGAS_REGISTRASI
+  PETUGAS_ANTREAN
+  PELAYAN
+  VIEWER
+}
+
+enum JenisEvent {
+  UMUM
+  REGISTRASI
+}
+
+enum StatusEvent {
+  DRAFT
+  DIBUKA
+  DITUTUP
+  DIBATALKAN
+}
+
+enum JenisPeserta {
+  JEMAAT
+  NON_JEMAAT
+}
+
+enum StatusPesertaEvent {
+  TERCATAT
+  HADIR
+  MENUNGGU
+  DIPANGGIL
+  SELESAI
+  BATAL
+}
+
+enum JenisBaptisan {
+  BAPTIS_ANAK
+  BAPTIS_DEWASA
+  SIDI
+}
+
+enum StatusPencatatanKematian {
+  DRAFT
+  TERVERIFIKASI
+  DIBATALKAN
+}
+
+// =========================================================
+// BETTER AUTH - CORE TABLES
+// Jangan mengubah nama field inti tanpa menyesuaikan auth config.
+// =========================================================
+
+model User {
+  id            String   @id
+  name          String
+  email         String   @unique
+  emailVerified Boolean  @default(false)
+  image         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  sessions Session[]
+  accounts Account[]
+  profil   ProfilPengguna?
+
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, accountId])
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([identifier, value])
+  @@index([expiresAt])
+  @@map("verification")
+}
+
+// =========================================================
+// OTORISASI APLIKASI
+// Dipisahkan dari tabel inti Better Auth agar lebih aman saat upgrade.
+// =========================================================
+
+model ProfilPengguna {
+  id     String        @id @default(uuid()) @db.Uuid
+  userId String        @unique
+  peran  PeranPengguna @default(VIEWER)
+  aktif  Boolean       @default(true)
+
+  unitGerejaId String? @db.Uuid
+  jemaatId     String? @unique @db.Uuid
+
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  unitGereja UnitGereja? @relation(fields: [unitGerejaId], references: [id], onDelete: SetNull)
+  jemaat     Jemaat?     @relation(fields: [jemaatId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([peran])
+  @@index([aktif])
+  @@index([unitGerejaId])
+  @@map("profil_pengguna")
+}
+
+// =========================================================
+// MASTER ORGANISASI
+// =========================================================
+
+model UnitGereja {
+  id              String          @id @default(uuid()) @db.Uuid
+  kode            String          @unique
+  nama            String
+  jenis           JenisUnitGereja
+  alamat          String?
+  noHp            String?
+  email           String?
+  penanggungJawab String?
+  aktif           Boolean         @default(true)
+
+  parentId String?      @db.Uuid
+  parent   UnitGereja?  @relation("HierarkiUnitGereja", fields: [parentId], references: [id], onDelete: Restrict)
+  subUnit  UnitGereja[] @relation("HierarkiUnitGereja")
+
+  wilayah        Wilayah[]
+  keluarga       Keluarga[]
+  jemaat         Jemaat[]
+  events         Event[]
+  profilPengguna ProfilPengguna[]
+  baptisan       Baptisan[]
+  pernikahan     Pernikahan[]
+  kematian       Kematian[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([jenis])
+  @@index([parentId])
+  @@index([aktif])
+  @@map("unit_gereja")
+}
+
+model Wilayah {
+  id           String  @id @default(uuid()) @db.Uuid
+  unitGerejaId String  @db.Uuid
+  nama         String
+  keterangan   String?
+
+  unitGereja UnitGereja @relation(fields: [unitGerejaId], references: [id], onDelete: Restrict)
+  jemaat     Jemaat[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@unique([unitGerejaId, nama])
+  @@index([unitGerejaId])
+  @@map("wilayah")
+}
+
+model Keluarga {
+  id                 String  @id @default(uuid()) @db.Uuid
+  unitGerejaId       String  @db.Uuid
+  nomorKK            String  @unique @db.VarChar(16)
+  namaKepalaKeluarga String
+  alamat             String?
+  noHp               String?
+
+  unitGereja UnitGereja @relation(fields: [unitGerejaId], references: [id], onDelete: Restrict)
+  jemaat     Jemaat[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([unitGerejaId])
+  @@index([namaKepalaKeluarga])
+  @@map("keluarga")
+}
+
+model Jemaat {
+  id               String       @id @default(uuid()) @db.Uuid
+  nomorIndukGereja String       @unique
+  nik              String       @unique @db.VarChar(16)
+  namaLengkap      String
+  namaPanggilan    String?
+  jenisKelamin     JenisKelamin
+  tempatLahir      String?
+  tanggalLahir     DateTime?    @db.Date
+  alamat           String?
+  noHp             String?
+  email            String?
+  foto             String?
+
+  status               StatusJemaat      @default(AKTIF)
+  tanggalTidakAktif    DateTime?         @db.Date
+  alasanTidakAktif     AlasanTidakAktif?
+  keteranganTidakAktif String?
+
+  unitGerejaId String @db.Uuid
+  wilayahId    String @db.Uuid
+  keluargaId   String @db.Uuid
+
+  unitGereja UnitGereja @relation(fields: [unitGerejaId], references: [id], onDelete: Restrict)
+  wilayah    Wilayah    @relation(fields: [wilayahId], references: [id], onDelete: Restrict)
+  keluarga   Keluarga   @relation(fields: [keluargaId], references: [id], onDelete: Restrict)
+
+  profilPengguna      ProfilPengguna?
+  pesertaEvent        PesertaEvent[]
+  baptisan            Baptisan[]
+  pernikahanPihakSatu Pernikahan[]    @relation("PernikahanPihakSatu")
+  pernikahanPihakDua  Pernikahan[]    @relation("PernikahanPihakDua")
+  kematian            Kematian?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([nomorIndukGereja])
+  @@index([namaLengkap])
+  @@index([status])
+  @@index([unitGerejaId])
+  @@index([wilayahId])
+  @@index([keluargaId])
+  @@map("jemaat")
+}
+
+// =========================================================
+// EVENT
+// =========================================================
+
+model KategoriEvent {
+  id        String  @id @default(uuid()) @db.Uuid
+  nama      String  @unique
+  ikon      String?
+  warna     String?
+  deskripsi String?
+  aktif     Boolean @default(true)
+
+  events Event[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([aktif])
+  @@map("kategori_event")
+}
+
+model Event {
+  id              String      @id @default(uuid()) @db.Uuid
+  unitGerejaId    String      @db.Uuid
+  kategoriEventId String      @db.Uuid
+  nama            String
+  deskripsi       String?
+  jenis           JenisEvent  @default(UMUM)
+  lokasi          String?
+  tanggalMulai    DateTime
+  tanggalSelesai  DateTime?
+  kapasitas       Int?
+  status          StatusEvent @default(DRAFT)
+
+  gunakanPencatatanPeserta Boolean @default(false)
+  gunakanCheckIn           Boolean @default(false)
+  gunakanAntrean           Boolean @default(false)
+  izinkanNonJemaat         Boolean @default(false)
+
+  unitGereja    UnitGereja     @relation(fields: [unitGerejaId], references: [id], onDelete: Restrict)
+  kategoriEvent KategoriEvent  @relation(fields: [kategoriEventId], references: [id], onDelete: Restrict)
+  peserta       PesertaEvent[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([unitGerejaId])
+  @@index([kategoriEventId])
+  @@index([tanggalMulai])
+  @@index([jenis])
+  @@index([status])
+  @@map("event")
+}
+
+model PesertaUmum {
+  id           String        @id @default(uuid()) @db.Uuid
+  nik          String?       @unique @db.VarChar(16)
+  namaLengkap  String
+  jenisKelamin JenisKelamin?
+  tempatLahir  String?
+  tanggalLahir DateTime?     @db.Date
+  alamat       String?
+  noHp         String?
+  email        String?
+  keterangan   String?
+
+  pesertaEvent PesertaEvent[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([namaLengkap])
+  @@index([noHp])
+  @@map("peserta_umum")
+}
+
+model PesertaEvent {
+  id            String       @id @default(uuid()) @db.Uuid
+  eventId       String       @db.Uuid
+  jenisPeserta  JenisPeserta
+  jemaatId      String?      @db.Uuid
+  pesertaUmumId String?      @db.Uuid
+
+  namaPesertaSnapshot String
+  nomorAntrian        Int?
+  status              StatusPesertaEvent @default(TERCATAT)
+
+  waktuTercatat  DateTime  @default(now())
+  waktuCheckIn   DateTime?
+  waktuDipanggil DateTime?
+  waktuSelesai   DateTime?
+  catatan        String?
+
+  event       Event        @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  jemaat      Jemaat?      @relation(fields: [jemaatId], references: [id], onDelete: Restrict)
+  pesertaUmum PesertaUmum? @relation(fields: [pesertaUmumId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@unique([eventId, jemaatId])
+  @@unique([eventId, pesertaUmumId])
+  @@unique([eventId, nomorAntrian])
+  @@index([eventId])
+  @@index([jemaatId])
+  @@index([pesertaUmumId])
+  @@index([status])
+  @@index([nomorAntrian])
+  @@map("peserta_event")
+}
+
+// =========================================================
+// ADMINISTRASI GEREJAWI
+// =========================================================
+
+model Baptisan {
+  id              String        @id @default(uuid()) @db.Uuid
+  jemaatId        String        @db.Uuid
+  unitGerejaId    String        @db.Uuid
+  jenis           JenisBaptisan
+  tanggalBaptisan DateTime      @db.Date
+  tempatBaptisan  String?
+  namaPelayan     String?
+  nomorSertifikat String?       @unique
+  dokumen         String?
+  keterangan      String?
+
+  jemaat     Jemaat     @relation(fields: [jemaatId], references: [id], onDelete: Restrict)
+  unitGereja UnitGereja @relation(fields: [unitGerejaId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([jemaatId])
+  @@index([unitGerejaId])
+  @@index([tanggalBaptisan])
+  @@map("baptisan")
+}
+
+model Pernikahan {
+  id                String   @id @default(uuid()) @db.Uuid
+  unitGerejaId      String   @db.Uuid
+  nomorPencatatan   String?  @unique
+  nomorSertifikat   String?  @unique
+  tanggalPernikahan DateTime @db.Date
+  tempatPernikahan  String?
+  namaPelayan       String?
+
+  jemaatPihakSatuId String? @db.Uuid
+  namaPihakSatu     String
+  jemaatPihakDuaId  String? @db.Uuid
+  namaPihakDua      String
+
+  namaSaksiSatu String?
+  namaSaksiDua  String?
+  dokumen       String?
+  keterangan    String?
+
+  unitGereja      UnitGereja @relation(fields: [unitGerejaId], references: [id], onDelete: Restrict)
+  jemaatPihakSatu Jemaat?    @relation("PernikahanPihakSatu", fields: [jemaatPihakSatuId], references: [id], onDelete: Restrict)
+  jemaatPihakDua  Jemaat?    @relation("PernikahanPihakDua", fields: [jemaatPihakDuaId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([unitGerejaId])
+  @@index([tanggalPernikahan])
+  @@index([jemaatPihakSatuId])
+  @@index([jemaatPihakDuaId])
+  @@map("pernikahan")
+}
+
+model Kematian {
+  id           String @id @default(uuid()) @db.Uuid
+  jemaatId     String @unique @db.Uuid
+  unitGerejaId String @db.Uuid
+
+  tanggalMeninggal  DateTime  @db.Date
+  waktuMeninggal    DateTime? @db.Time(0)
+  tempatMeninggal   String?
+  penyebabKematian  String?
+  umurSaatMeninggal Int?
+
+  nomorSuratKematian   String? @unique
+  instansiPenerbit     String?
+  dokumenSuratKematian String?
+  alamatRumahDuka      String?
+
+  tanggalIbadahPenghiburan DateTime? @db.Date
+  waktuIbadahPenghiburan   DateTime? @db.Time(0)
+  lokasiIbadahPenghiburan  String?
+  namaPelayanPenghiburan   String?
+  temaPelayanan            String?
+  catatanPelayanan         String?
+
+  tanggalPemakaman     DateTime? @db.Date
+  waktuPemakaman       DateTime? @db.Time(0)
+  lokasiPemakaman      String?
+  namaTempatPemakaman  String?
+  namaPelayanPemakaman String?
+  nomorLokasiMakam     String?
+  keteranganPemakaman  String?
+
+  status     StatusPencatatanKematian @default(DRAFT)
+  keterangan String?
+
+  jemaat     Jemaat     @relation(fields: [jemaatId], references: [id], onDelete: Restrict)
+  unitGereja UnitGereja @relation(fields: [unitGerejaId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([unitGerejaId])
+  @@index([tanggalMeninggal])
+  @@index([status])
+  @@map("kematian")
+}
