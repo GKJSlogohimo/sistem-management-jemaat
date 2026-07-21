@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, CalendarDays, CheckSquare, ListOrdered, MapPin, Users } from "lucide-react";
+import { CalendarDays, CheckSquare, ListOrdered, MapPin, PlayCircle, Users } from "lucide-react";
 import Link from "next/link";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -40,12 +40,20 @@ export function EventWorkspace({ eventId }: Props) {
   return (
     <div className="space-y-6">
       <div>
-        <Button variant="ghost" asChild className="-ml-3 mb-3">
-          <Link href="/event">
-            <ArrowLeft />
-            Kembali ke Event
-          </Link>
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          {event.gunakanCheckIn ? (
+            <Button asChild>
+              <Link href={`/event/${event.id}/operasional`}>
+                <PlayCircle />
+                Buka operasional
+              </Link>
+            </Button>
+          ) : null}
+
+          <Button variant="outline" asChild>
+            <Link href="/event">Kelola Event</Link>
+          </Button>
+        </div>
 
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>

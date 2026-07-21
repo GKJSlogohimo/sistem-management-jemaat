@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { EventWorkspace } from "@/features/peserta-event/components/event-workspace";
+import { EventWorkspace } from "@/features/event/components/event-workspace";
 
 export const metadata: Metadata = {
   title: "Detail Event | Sistem Manajemen Jemaat",
