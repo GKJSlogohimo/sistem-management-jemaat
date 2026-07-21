@@ -2,6 +2,7 @@ import { apiFetch } from "@/lib/api/api-client";
 import type { PaginatedMeta } from "@/lib/api/api-types";
 
 import type {
+  ActiveUnitGerejaOption,
   CreateUnitGerejaInput,
   UnitGerejaDetail,
   UnitGerejaListItem,
@@ -56,4 +57,8 @@ export function deleteUnitGerejaRequest(id: string) {
   }>(`/api/unit-gereja/${id}`, {
     method: "DELETE",
   });
+}
+
+export function getActiveUnitGerejaOptions() {
+  return apiFetch<ActiveUnitGerejaOption[]>("/api/unit-gereja/active-options");
 }

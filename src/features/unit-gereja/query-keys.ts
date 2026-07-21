@@ -12,4 +12,6 @@ export const unitGerejaKeys = {
   detail: (id: string) => [...unitGerejaKeys.details(), id] as const,
 
   options: () => [...unitGerejaKeys.all, "options"] as const,
+
+  activeOptions: () => [...unitGerejaKeys.all, "active-options"] as const,
 };

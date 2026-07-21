@@ -34,6 +34,13 @@ export type UnitGerejaOption = {
   nama: string;
 };
 
+export type ActiveUnitGerejaOption = {
+  id: string;
+  kode: string;
+  nama: string;
+  jenis: JenisUnitGerejaValue;
+};
+
 export type CreateUnitGerejaInput = UnitGerejaFormValues;
 
 export type UpdateUnitGerejaInput = UnitGerejaFormValues;
