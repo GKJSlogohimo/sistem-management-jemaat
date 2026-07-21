@@ -132,7 +132,7 @@ export function JemaatTable() {
                   resetPage();
                 }}
               >
-                <SelectTrigger className="w-full lg:w-[220px]">
+                <SelectTrigger className="w-full lg:w-55">
                   <SelectValue placeholder="Semua unit" />
                 </SelectTrigger>
 
