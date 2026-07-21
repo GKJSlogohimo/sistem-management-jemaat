@@ -37,14 +37,16 @@ export function getEventList(params: EventListParams) {
   return apiFetch<EventListItem[], PaginatedMeta>(`/api/event?${searchParams.toString()}`);
 }
 
+export function getEventDetail(id: string) {
+  return apiFetch<EventDetail>(`/api/event/${id}`);
+}
+
 export function createEventRequest(values: CreateEventInput) {
   return apiFetch<EventDetail>("/api/event", {
     method: "POST",
-
     headers: {
       "Content-Type": "application/json",
     },
-
     body: JSON.stringify(values),
   });
 }
@@ -52,11 +54,9 @@ export function createEventRequest(values: CreateEventInput) {
 export function updateEventRequest(id: string, values: UpdateEventInput) {
   return apiFetch<EventDetail>(`/api/event/${id}`, {
     method: "PATCH",
-
     headers: {
       "Content-Type": "application/json",
     },
-
     body: JSON.stringify(values),
   });
 }

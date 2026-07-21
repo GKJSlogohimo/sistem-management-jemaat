@@ -6,7 +6,7 @@ import prisma from "@/lib/prisma";
 
 import type { CreateEventInput, EventListItem, EventListParams, UpdateEventInput } from "../types";
 
-type EventActor = {
+export type EventActor = {
   userId: string;
   peran: PeranPengguna;
   unitGerejaId: string | null;
@@ -119,7 +119,7 @@ function mapEvent(event: EventPayload): EventListItem {
   };
 }
 
-async function getAccessibleUnitIds(actor: EventActor): Promise<string[] | undefined> {
+export async function getAccessibleUnitIds(actor: EventActor): Promise<string[] | undefined> {
   if (actor.peran === PeranPengguna.SUPER_ADMIN) {
     return undefined;
   }
@@ -160,7 +160,7 @@ async function getAccessibleUnitIds(actor: EventActor): Promise<string[] | undef
   return [unit.id, ...unit.subUnit.map((subUnit) => subUnit.id)];
 }
 
-async function assertCanAccessUnit(actor: EventActor, unitGerejaId: string) {
+export async function assertCanAccessUnit(actor: EventActor, unitGerejaId: string) {
   const accessibleUnitIds = await getAccessibleUnitIds(actor);
 
   if (accessibleUnitIds && !accessibleUnitIds.includes(unitGerejaId)) {

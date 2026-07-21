@@ -2,6 +2,7 @@
 
 import type { ColumnDef } from "@tanstack/react-table";
 import { CheckSquare, ListOrdered, MoreHorizontal, Pencil, Trash2, Users } from "lucide-react";
+import Link from "next/link";
 
 import { DataTableColumnHeader } from "@/components/data-table";
 import { Badge } from "@/components/ui/badge";
@@ -134,34 +135,48 @@ export function getEventColumns({ onEdit, onDelete }: Options): ColumnDef<EventL
     {
       id: "actions",
       enableSorting: false,
+      enableHiding: false,
 
-      cell: ({ row }) => (
-        <div className="flex justify-end">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button type="button" variant="ghost" size="icon">
-                <MoreHorizontal />
-              </Button>
-            </DropdownMenuTrigger>
+      cell: ({ row }) => {
+        const event = row.original;
 
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Tindakan</DropdownMenuLabel>
+        return (
+          <div className="flex justify-end">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button type="button" variant="ghost" size="icon">
+                  <MoreHorizontal />
 
-              <DropdownMenuSeparator />
+                  <span className="sr-only">Buka menu tindakan</span>
+                </Button>
+              </DropdownMenuTrigger>
 
-              <DropdownMenuItem onClick={() => onEdit(row.original)}>
-                <Pencil />
-                Edit
-              </DropdownMenuItem>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Tindakan</DropdownMenuLabel>
 
-              <DropdownMenuItem variant="destructive" onClick={() => onDelete(row.original)}>
-                <Trash2 />
-                Hapus
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      ),
+                <DropdownMenuSeparator />
+
+                <DropdownMenuItem asChild>
+                  <Link href={`/event/${event.id}`}>
+                    <Users />
+                    Kelola peserta
+                  </Link>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem onClick={() => onEdit(event)}>
+                  <Pencil />
+                  Edit
+                </DropdownMenuItem>
+
+                <DropdownMenuItem variant="destructive" onClick={() => onDelete(event)}>
+                  <Trash2 />
+                  Hapus
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        );
+      },
     },
   ];
 }
