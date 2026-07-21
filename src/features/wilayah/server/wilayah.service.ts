@@ -413,3 +413,20 @@ export async function deleteWilayah(id: string) {
     id,
   };
 }
+
+export async function getWilayahOptions(unitGerejaId: string) {
+  return prisma.wilayah.findMany({
+    where: {
+      unitGerejaId,
+      deletedAt: null,
+    },
+    select: {
+      id: true,
+      unitGerejaId: true,
+      nama: true,
+    },
+    orderBy: {
+      nama: "asc",
+    },
+  });
+}
