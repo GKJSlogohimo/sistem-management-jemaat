@@ -1,14 +1,6 @@
 "use client";
 
-import {
-  CalendarDays,
-  CheckSquare,
-  ListOrdered,
-  MapPin,
-  MonitorUp,
-  PlayCircle,
-  Users,
-} from "lucide-react";
+import { CalendarDays, CheckSquare, FileText, ListOrdered, MapPin, Users } from "lucide-react";
 import Link from "next/link";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -55,24 +47,23 @@ export function EventWorkspace({ eventId }: Props) {
         <div className="flex flex-wrap gap-2">
           {event.gunakanCheckIn ? (
             <Button asChild>
-              <Link href={`/event/${event.id}/operasional`}>
-                <PlayCircle />
-                Buka operasional
-              </Link>
+              <Link href={`/event/${event.id}/operasional`}>Buka operasional</Link>
             </Button>
           ) : null}
 
           {event.gunakanAntrean ? (
             <Button variant="outline" asChild>
-              <Link href={`/event/${event.id}/display`} target="_blank" rel="noopener noreferrer">
-                <MonitorUp />
+              <Link href={`/event/${event.id}/display`} target="_blank">
                 Buka display
               </Link>
             </Button>
           ) : null}
 
           <Button variant="outline" asChild>
-            <Link href="/event">Kelola Event</Link>
+            <Link href={`/event/${event.id}/laporan`}>
+              <FileText />
+              Laporan
+            </Link>
           </Button>
         </div>
 
