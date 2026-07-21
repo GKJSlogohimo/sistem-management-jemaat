@@ -539,3 +539,26 @@ export async function deleteUnitGereja(id: string) {
     id,
   };
 }
+
+export async function getActiveUnitGerejaOptions() {
+  return prisma.unitGereja.findMany({
+    where: {
+      aktif: true,
+      deletedAt: null,
+    },
+    select: {
+      id: true,
+      kode: true,
+      nama: true,
+      jenis: true,
+    },
+    orderBy: [
+      {
+        jenis: "asc",
+      },
+      {
+        nama: "asc",
+      },
+    ],
+  });
+}
