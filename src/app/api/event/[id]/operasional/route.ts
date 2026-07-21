@@ -1,3 +1,4 @@
+import { publishEventChanged, publishQueueCalled } from "@/app/api/realtime/ably-server";
 import { eventIdSchema } from "@/features/event/schemas/event.schema";
 import {
   type OperasionalEventAction,
@@ -117,6 +118,22 @@ export async function POST(request: Request, { params }: RouteProps) {
     }
 
     const result = await executeOperasionalEventAction(getActor(actor), parsedId.data, parsed.data);
+
+    await publishEventChanged(parsedId.data, parsed.data.action);
+
+    if (parsed.data.action === "PANGGIL" || parsed.data.action === "PANGGIL_BERIKUTNYA") {
+      if (result.nomorAntrian !== null) {
+        await publishQueueCalled({
+          eventId: parsedId.data,
+
+          pesertaId: result.id,
+
+          nomorAntrian: result.nomorAntrian,
+
+          tujuan: "meja pelayanan",
+        });
+      }
+    }
 
     return apiSuccess(result, {
       message: getActionMessage(parsed.data.action),

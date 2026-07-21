@@ -1,6 +1,14 @@
 "use client";
 
-import { CalendarDays, CheckSquare, ListOrdered, MapPin, PlayCircle, Users } from "lucide-react";
+import {
+  CalendarDays,
+  CheckSquare,
+  ListOrdered,
+  MapPin,
+  MonitorUp,
+  PlayCircle,
+  Users,
+} from "lucide-react";
 import Link from "next/link";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -14,12 +22,16 @@ import {
 import { useEventDetailQuery } from "@/features/event/hooks/use-event-query";
 import { PesertaEventTable } from "@/features/peserta-event/components/peserta-event-table";
 
+import { useEventRealtime } from "../hooks/use-event-realtime";
+
 type Props = {
   eventId: string;
 };
 
 export function EventWorkspace({ eventId }: Props) {
   const query = useEventDetailQuery(eventId);
+
+  useEventRealtime(eventId);
 
   if (query.isPending) {
     return <div className="h-120 animate-pulse rounded-xl bg-muted" />;
@@ -46,6 +58,15 @@ export function EventWorkspace({ eventId }: Props) {
               <Link href={`/event/${event.id}/operasional`}>
                 <PlayCircle />
                 Buka operasional
+              </Link>
+            </Button>
+          ) : null}
+
+          {event.gunakanAntrean ? (
+            <Button variant="outline" asChild>
+              <Link href={`/event/${event.id}/display`} target="_blank" rel="noopener noreferrer">
+                <MonitorUp />
+                Buka display
               </Link>
             </Button>
           ) : null}

@@ -1,3 +1,4 @@
+import { publishEventChanged } from "@/app/api/realtime/ably-server";
 import { eventIdSchema } from "@/features/event/schemas/event.schema";
 import {
   pesertaEventFormSchema,
@@ -66,6 +67,8 @@ export async function PATCH(request: Request, { params }: RouteProps) {
       parsed.data,
     );
 
+    await publishEventChanged(parsedEventId.data, "PESERTA_DIPERBARUI");
+
     return apiSuccess(peserta, {
       message: "Data peserta berhasil diperbarui.",
     });
@@ -95,6 +98,8 @@ export async function DELETE(request: Request, { params }: RouteProps) {
       parsedEventId.data,
       parsedPesertaId.data,
     );
+
+    await publishEventChanged(parsedEventId.data, "PESERTA_DIHAPUS");
 
     return apiSuccess(result, {
       message: "Peserta berhasil dihapus dari Event.",

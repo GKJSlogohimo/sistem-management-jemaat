@@ -25,7 +25,9 @@ export function useOperasionalEventQuery(eventId: string, q: string) {
      * Mendukung beberapa petugas
      * menggunakan perangkat berbeda.
      */
-    refetchInterval: 5_000,
+    refetchInterval: 30_000,
+
+    refetchIntervalInBackground: false,
   });
 }
 

@@ -304,17 +304,26 @@ export async function getOperasionalEventState(
     deletedAt: null,
   };
 
+  const jumlahPerStatusArgs = {
+    by: ["status"],
+
+    where: {
+      eventId,
+      deletedAt: null,
+    },
+
+    orderBy: {
+      status: "asc",
+    },
+
+    _count: {
+      id: true,
+    },
+  } satisfies Prisma.PesertaEventGroupByArgs;
+
   const [groupedStatus, queueAggregate, tercatat, hadir, menunggu, dipanggil, selesai] =
     await prisma.$transaction([
-      prisma.pesertaEvent.groupBy({
-        by: ["status"],
-
-        where: baseWhere,
-
-        _count: {
-          _all: true,
-        },
-      }),
+      prisma.pesertaEvent.groupBy(jumlahPerStatusArgs),
 
       /*
        * Sertakan seluruh nomor yang pernah dipakai.
@@ -427,7 +436,7 @@ export async function getOperasionalEventState(
   };
 
   for (const item of groupedStatus) {
-    ringkasan[item.status] = item._count._all;
+    ringkasan[item.status] = item._count.id;
   }
 
   return {

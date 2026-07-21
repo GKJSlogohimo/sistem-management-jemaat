@@ -13,18 +13,17 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useDeferredValue, useState } from "react";
-import { toast } from "sonner";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useEventRealtime } from "@/features/event/hooks/use-event-realtime";
 
 import {
   useOperasionalEventMutation,
   useOperasionalEventQuery,
 } from "../hooks/use-operasional-event";
-import { speakQueueAnnouncement, stopQueueAnnouncement } from "../lib/speech-announcement";
 import type { ExecuteOperasionalEventInput, OperasionalParticipant } from "../types";
 import { CheckInDialog } from "./check-in-dialog";
 
@@ -64,25 +63,10 @@ export function OperasionalEventWorkspace({ eventId }: Props) {
 
   const [selectedCheckIn, setSelectedCheckIn] = useState<OperasionalParticipant | null>(null);
 
+  const realtime = useEventRealtime(eventId);
+
   async function execute(values: ExecuteOperasionalEventInput) {
-    return mutation.mutateAsync(values);
-  }
-
-  function announceParticipant(peserta: OperasionalParticipant) {
-    const spoken = speakQueueAnnouncement({
-      nomorAntrian: peserta.nomorAntrian,
-
-      tujuan: "meja pelayanan",
-
-      /*
-       * Suara dibacakan dua kali.
-       */
-      ulang: 2,
-    });
-
-    if (!spoken) {
-      toast.error("Browser tidak mendukung suara atau nomor antrean tidak tersedia.");
-    }
+    await mutation.mutateAsync(values);
   }
 
   if (query.isPending) {
@@ -105,35 +89,24 @@ export function OperasionalEventWorkspace({ eventId }: Props) {
 
   return (
     <div className="space-y-6">
+      {realtime.connectionError ? (
+        <Alert variant="destructive">
+          <AlertTitle>Koneksi realtime bermasalah</AlertTitle>
+
+          <AlertDescription>{realtime.connectionError}</AlertDescription>
+        </Alert>
+      ) : null}
+
       <div>
+        <Badge variant={realtime.connected ? "default" : "secondary"}>
+          {realtime.connected ? "Realtime aktif" : "Realtime terputus"}
+        </Badge>
+
         <Button variant="ghost" asChild className="-ml-3 mb-3">
           <Link href={`/event/${eventId}`}>
             <ArrowLeft />
             Kembali ke detail Event
           </Link>
-        </Button>
-
-        <Button type="button" variant="outline" onClick={stopQueueAnnouncement}>
-          Hentikan suara
-        </Button>
-
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => {
-            const spoken = speakQueueAnnouncement({
-              nomorAntrian: 1,
-              tujuan: "meja pelayanan",
-              ulang: 1,
-            });
-
-            if (!spoken) {
-              toast.error("Fitur suara tidak tersedia pada browser ini.");
-            }
-          }}
-        >
-          <Volume2 />
-          Tes suara
         </Button>
 
         <div>
@@ -279,8 +252,6 @@ export function OperasionalEventWorkspace({ eventId }: Props) {
                 onClick={() => {
                   void execute({
                     action: "PANGGIL_BERIKUTNYA",
-                  }).then((response) => {
-                    announceParticipant(response.data);
                   });
                 }}
               >
@@ -308,8 +279,6 @@ export function OperasionalEventWorkspace({ eventId }: Props) {
                         void execute({
                           action: "PANGGIL",
                           pesertaId: peserta.id,
-                        }).then((response) => {
-                          announceParticipant(response.data);
                         });
                       }}
                     >
@@ -376,17 +345,6 @@ export function OperasionalEventWorkspace({ eventId }: Props) {
                     >
                       <CheckCircle2 />
                       Selesai
-                    </Button>
-
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => {
-                        announceParticipant(peserta);
-                      }}
-                    >
-                      <Volume2 />
-                      Ulangi suara
                     </Button>
 
                     <Button

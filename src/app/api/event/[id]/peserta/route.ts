@@ -1,3 +1,4 @@
+import { publishEventChanged } from "@/app/api/realtime/ably-server";
 import { eventIdSchema } from "@/features/event/schemas/event.schema";
 import {
   pesertaEventFormSchema,
@@ -87,6 +88,8 @@ export async function POST(request: Request, { params }: RouteProps) {
     }
 
     const peserta = await createPesertaEvent(getActor(actor), parsedId.data, parsed.data);
+
+    await publishEventChanged(parsedId.data, "PESERTA_DITAMBAHKAN");
 
     return apiSuccess(peserta, {
       status: 201,
