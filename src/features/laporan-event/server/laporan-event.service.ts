@@ -1,6 +1,7 @@
 import { assertCanAccessUnit, EventActor } from "@/features/event/server/event.service";
 import { StatusPesertaEvent } from "@/generated/prisma/client";
 import { AppError } from "@/lib/api/app-error";
+import { canReadNik } from "@/lib/auth/access-roles";
 import prisma from "@/lib/prisma";
 
 import type { LaporanEvent } from "../types/laporan-event.types";
@@ -20,6 +21,7 @@ function differenceInMinutes(start: Date, end: Date) {
 }
 
 export async function getLaporanEvent(actor: EventActor, eventId: string): Promise<LaporanEvent> {
+  const allowNik = canReadNik(actor.peran);
   const event = await prisma.event.findFirst({
     where: {
       id: eventId,
@@ -190,7 +192,7 @@ export async function getLaporanEvent(actor: EventActor, eventId: string): Promi
 
       nama: peserta.namaPesertaSnapshot,
 
-      nik: peserta.jemaat?.nik ?? peserta.pesertaUmum?.nik ?? null,
+      nik: allowNik ? (peserta.jemaat?.nik ?? peserta.pesertaUmum?.nik ?? null) : null,
 
       alamat:
         peserta.jemaat?.alamat ??

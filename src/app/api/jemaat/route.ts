@@ -7,7 +7,7 @@ import { requireApiRoles } from "@/lib/auth/require-api-role";
 
 export async function GET(request: Request) {
   try {
-    await requireApiRoles(request.headers, JEMAAT_READ_ROLES);
+    const actor = await requireApiRoles(request.headers, JEMAAT_READ_ROLES);
 
     const query = Object.fromEntries(new URL(request.url).searchParams.entries());
 
@@ -17,7 +17,16 @@ export async function GET(request: Request) {
       return apiValidationError(parsed.error);
     }
 
-    const result = await getJemaatList(parsed.data);
+    const result = await getJemaatList(
+      {
+        userId: actor.session.user.id,
+
+        peran: actor.profile.peran,
+
+        unitGerejaId: actor.profile.unitGerejaId,
+      },
+      parsed.data,
+    );
 
     return apiPaginated(result.data, result.pagination);
   } catch (error) {
@@ -27,7 +36,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    await requireApiRoles(request.headers, JEMAAT_WRITE_ROLES);
+    const actor = await requireApiRoles(request.headers, JEMAAT_WRITE_ROLES);
 
     const body = await request.json().catch(() => null);
     const parsed = jemaatFormSchema.safeParse(body);
@@ -36,7 +45,16 @@ export async function POST(request: Request) {
       return apiValidationError(parsed.error);
     }
 
-    const jemaat = await createJemaat(parsed.data);
+    const jemaat = await createJemaat(
+      {
+        userId: actor.session.user.id,
+
+        peran: actor.profile.peran,
+
+        unitGerejaId: actor.profile.unitGerejaId,
+      },
+      parsed.data,
+    );
 
     return apiSuccess(jemaat, {
       status: 201,

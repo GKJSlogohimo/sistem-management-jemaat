@@ -13,7 +13,7 @@ type JemaatRouteProps = {
 
 export async function GET(request: Request, { params }: JemaatRouteProps) {
   try {
-    await requireApiRoles(request.headers, JEMAAT_READ_ROLES);
+    const actor = await requireApiRoles(request.headers, JEMAAT_READ_ROLES);
 
     const { id } = await params;
     const parsedId = jemaatIdSchema.safeParse(id);
@@ -24,7 +24,18 @@ export async function GET(request: Request, { params }: JemaatRouteProps) {
       });
     }
 
-    return apiSuccess(await getJemaatById(parsedId.data));
+    return apiSuccess(
+      await getJemaatById(
+        {
+          userId: actor.session.user.id,
+
+          peran: actor.profile.peran,
+
+          unitGerejaId: actor.profile.unitGerejaId,
+        },
+        parsedId.data,
+      ),
+    );
   } catch (error) {
     return handleApiError(error);
   }
@@ -32,7 +43,7 @@ export async function GET(request: Request, { params }: JemaatRouteProps) {
 
 export async function PATCH(request: Request, { params }: JemaatRouteProps) {
   try {
-    await requireApiRoles(request.headers, JEMAAT_WRITE_ROLES);
+    const actor = await requireApiRoles(request.headers, JEMAAT_WRITE_ROLES);
 
     const { id } = await params;
     const parsedId = jemaatIdSchema.safeParse(id);
@@ -50,7 +61,17 @@ export async function PATCH(request: Request, { params }: JemaatRouteProps) {
       return apiValidationError(parsed.error);
     }
 
-    const jemaat = await updateJemaat(parsedId.data, parsed.data);
+    const jemaat = await updateJemaat(
+      {
+        userId: actor.session.user.id,
+
+        peran: actor.profile.peran,
+
+        unitGerejaId: actor.profile.unitGerejaId,
+      },
+      parsedId.data,
+      parsed.data,
+    );
 
     return apiSuccess(jemaat, {
       message: "Data jemaat berhasil diperbarui.",
@@ -62,7 +83,7 @@ export async function PATCH(request: Request, { params }: JemaatRouteProps) {
 
 export async function DELETE(request: Request, { params }: JemaatRouteProps) {
   try {
-    await requireApiRoles(request.headers, JEMAAT_WRITE_ROLES);
+    const actor = await requireApiRoles(request.headers, JEMAAT_WRITE_ROLES);
 
     const { id } = await params;
     const parsedId = jemaatIdSchema.safeParse(id);
@@ -73,7 +94,16 @@ export async function DELETE(request: Request, { params }: JemaatRouteProps) {
       });
     }
 
-    const result = await deleteJemaat(parsedId.data);
+    const result = await deleteJemaat(
+      {
+        userId: actor.session.user.id,
+
+        peran: actor.profile.peran,
+
+        unitGerejaId: actor.profile.unitGerejaId,
+      },
+      parsedId.data,
+    );
 
     return apiSuccess(result, {
       message: "Data jemaat berhasil dihapus.",

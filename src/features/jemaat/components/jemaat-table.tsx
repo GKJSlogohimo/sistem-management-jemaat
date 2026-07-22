@@ -26,9 +26,10 @@ import { JemaatFormDialog } from "./jemaat-form-dialog";
 
 type JemaatTableProps = {
   canManage: boolean;
+  canViewNik: boolean;
 };
 
-export function JemaatTable({ canManage }: JemaatTableProps) {
+export function JemaatTable({ canManage, canViewNik }: JemaatTableProps) {
   const { search, debouncedSearch, pagination, setSearch, resetSearch, onPaginationChange } =
     useDataTableQueryParams();
 
@@ -76,6 +77,7 @@ export function JemaatTable({ canManage }: JemaatTableProps) {
     () =>
       getJemaatColumns({
         canManage,
+        canViewNik,
         onEdit: (jemaat) => {
           setSelected(jemaat);
           setFormOpen(true);
@@ -85,7 +87,7 @@ export function JemaatTable({ canManage }: JemaatTableProps) {
           setDeleteOpen(true);
         },
       }),
-    [canManage],
+    [canManage, canViewNik],
   );
 
   const changeSorting: OnChangeFn<SortingState> = (updater) => {

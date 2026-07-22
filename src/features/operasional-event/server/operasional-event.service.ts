@@ -3,6 +3,7 @@ import "server-only";
 import { assertCanAccessUnit, type EventActor } from "@/features/event/server/event.service";
 import { Prisma, StatusEvent, StatusPesertaEvent } from "@/generated/prisma/client";
 import { AppError } from "@/lib/api/app-error";
+import { canReadNik } from "@/lib/auth/access-roles";
 import prisma from "@/lib/prisma";
 
 import type {
@@ -48,7 +49,10 @@ type OperasionalParticipantPayload = Prisma.PesertaEventGetPayload<{
 
 type TransactionClient = Prisma.TransactionClient;
 
-function mapParticipant(peserta: OperasionalParticipantPayload): OperasionalParticipant {
+function mapParticipant(
+  peserta: OperasionalParticipantPayload,
+  allowNik: boolean,
+): OperasionalParticipant {
   const source = peserta.jenisPeserta === "JEMAAT" ? peserta.jemaat : peserta.pesertaUmum;
 
   return {
@@ -59,7 +63,7 @@ function mapParticipant(peserta: OperasionalParticipantPayload): OperasionalPart
 
     nama: peserta.namaPesertaSnapshot,
 
-    nik: source?.nik ?? null,
+    nik: allowNik ? (source?.nik ?? null) : null,
     noHp: source?.noHp ?? null,
 
     nomorAntrian: peserta.nomorAntrian,
@@ -297,6 +301,7 @@ export async function getOperasionalEventState(
   eventId: string,
   q: string,
 ): Promise<OperasionalEventState> {
+  const allowNik = canReadNik(actor.peran);
   const event = await getOperationalEvent(actor, eventId);
 
   const baseWhere: Prisma.PesertaEventWhereInput = {
@@ -460,15 +465,15 @@ export async function getOperasionalEventState(
 
     nomorAntrianBerikutnya: (queueAggregate._max.nomorAntrian ?? 0) + 1,
 
-    tercatat: tercatat.map(mapParticipant),
+    tercatat: tercatat.map((item) => mapParticipant(item, allowNik)),
 
-    hadir: hadir.map(mapParticipant),
+    hadir: hadir.map((item) => mapParticipant(item, allowNik)),
 
-    menunggu: menunggu.map(mapParticipant),
+    menunggu: menunggu.map((item) => mapParticipant(item, allowNik)),
 
-    dipanggil: dipanggil.map(mapParticipant),
+    dipanggil: dipanggil.map((item) => mapParticipant(item, allowNik)),
 
-    selesai: selesai.map(mapParticipant),
+    selesai: selesai.map((item) => mapParticipant(item, allowNik)),
   };
 }
 
@@ -681,6 +686,7 @@ export async function executeOperasionalEventAction(
   eventId: string,
   input: ExecuteOperasionalEventInput,
 ) {
+  const allowNik = canReadNik(actor.peran);
   await getOperationalEvent(actor, eventId);
 
   try {
@@ -712,7 +718,7 @@ export async function executeOperasionalEventAction(
         break;
     }
 
-    return mapParticipant(result);
+    return mapParticipant(result, allowNik);
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
       throw new AppError("Nomor antrean sudah digunakan peserta lain.", {

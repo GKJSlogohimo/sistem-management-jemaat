@@ -10,7 +10,7 @@ import { requireApiRoles } from "@/lib/auth/require-api-role";
 
 export async function GET(request: Request) {
   try {
-    await requireApiRoles(request.headers, KELUARGA_READ_ROLES);
+    const actor = await requireApiRoles(request.headers, KELUARGA_READ_ROLES);
 
     const searchParams = Object.fromEntries(new URL(request.url).searchParams.entries());
 
@@ -20,7 +20,16 @@ export async function GET(request: Request) {
       return apiValidationError(parsed.error);
     }
 
-    const result = await getKeluargaList(parsed.data);
+    const result = await getKeluargaList(
+      {
+        userId: actor.session.user.id,
+
+        peran: actor.profile.peran,
+
+        unitGerejaId: actor.profile.unitGerejaId,
+      },
+      parsed.data,
+    );
 
     return apiPaginated(result.data, result.pagination);
   } catch (error) {
@@ -30,7 +39,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    await requireApiRoles(request.headers, KELUARGA_WRITE_ROLES);
+    const actor = await requireApiRoles(request.headers, KELUARGA_WRITE_ROLES);
 
     const body = await request.json().catch(() => null);
 
@@ -40,7 +49,16 @@ export async function POST(request: Request) {
       return apiValidationError(parsed.error);
     }
 
-    const keluarga = await createKeluarga(parsed.data);
+    const keluarga = await createKeluarga(
+      {
+        userId: actor.session.user.id,
+
+        peran: actor.profile.peran,
+
+        unitGerejaId: actor.profile.unitGerejaId,
+      },
+      parsed.data,
+    );
 
     return apiSuccess(keluarga, {
       status: 201,

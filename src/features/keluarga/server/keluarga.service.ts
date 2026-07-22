@@ -1,7 +1,10 @@
 import "server-only";
 
-import type { Prisma } from "@/generated/prisma/client";
+import { assertCanAccessUnit, getAccessibleUnitIds } from "@/features/event/server/event.service";
+import { Prisma } from "@/generated/prisma/client";
 import { AppError } from "@/lib/api/app-error";
+import { canReadNomorKK } from "@/lib/auth/access-roles";
+import type { AppActor } from "@/lib/auth/actor";
 import prisma from "@/lib/prisma";
 
 import type {
@@ -46,23 +49,40 @@ type KeluargaPayload = Prisma.KeluargaGetPayload<{
   select: typeof keluargaSelect;
 }>;
 
-function normalizeOptionalText(value: string): string | null {
-  const normalized = value.trim();
+function normalizeOptionalText(value: string | null | undefined): string | null {
+  const normalized = value?.trim() ?? "";
 
   return normalized.length > 0 ? normalized : null;
 }
 
-function mapKeluarga(keluarga: KeluargaPayload): KeluargaListItem {
+function normalizeNomorKK(value: string) {
+  return value.trim();
+}
+
+function mapKeluarga(keluarga: KeluargaPayload, allowNomorKK: boolean): KeluargaListItem {
   return {
     id: keluarga.id,
+
     unitGerejaId: keluarga.unitGerejaId,
-    nomorKK: keluarga.nomorKK,
+
+    /*
+     * Nomor KK tidak dikirim ke browser
+     * untuk role yang tidak berizin.
+     */
+    nomorKK: allowNomorKK ? keluarga.nomorKK : null,
+
     namaKepalaKeluarga: keluarga.namaKepalaKeluarga,
+
     alamat: keluarga.alamat,
+
     noHp: keluarga.noHp,
+
     unitGereja: keluarga.unitGereja,
+
     jumlahAnggota: keluarga._count.jemaat,
+
     createdAt: keluarga.createdAt.toISOString(),
+
     updatedAt: keluarga.updatedAt.toISOString(),
   };
 }
@@ -84,6 +104,7 @@ async function assertUnitGerejaAvailable(unitGerejaId: string) {
     throw new AppError("Unit gereja tidak ditemukan atau tidak aktif.", {
       status: 422,
       code: "VALIDATION_ERROR",
+
       fieldErrors: {
         unitGerejaId: ["Pilih unit gereja yang masih aktif."],
       },
@@ -91,12 +112,44 @@ async function assertUnitGerejaAvailable(unitGerejaId: string) {
   }
 }
 
+async function createUnitScope(
+  actor: AppActor,
+  requestedUnitId?: string | null,
+): Promise<Prisma.KeluargaWhereInput> {
+  if (requestedUnitId) {
+    await assertCanAccessUnit(actor, requestedUnitId);
+
+    return {
+      unitGerejaId: requestedUnitId,
+    };
+  }
+
+  const accessibleUnitIds = await getAccessibleUnitIds(actor);
+
+  return {
+    unitGerejaId: {
+      in: accessibleUnitIds,
+    },
+  };
+}
+
 function getOrderBy(
   sortBy: KeluargaListParams["sortBy"],
   sortOrder: KeluargaListParams["sortOrder"],
+  allowNomorKK: boolean,
 ): Prisma.KeluargaOrderByWithRelationInput {
   switch (sortBy) {
     case "nomorKK":
+      /*
+       * Role tanpa izin tidak boleh
+       * mengurutkan berdasarkan nomor KK.
+       */
+      if (!allowNomorKK) {
+        return {
+          namaKepalaKeluarga: sortOrder,
+        };
+      }
+
       return {
         nomorKK: sortOrder,
       };
@@ -126,60 +179,97 @@ function getOrderBy(
   }
 }
 
-export async function getKeluargaList(params: KeluargaListParams) {
+function throwNomorKKConflict(error: unknown): never {
+  if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+    throw new AppError("Nomor KK sudah terdaftar.", {
+      status: 409,
+      code: "CONFLICT",
+
+      fieldErrors: {
+        nomorKK: ["Nomor KK sudah terdaftar."],
+      },
+    });
+  }
+
+  throw error;
+}
+
+export async function getKeluargaList(actor: AppActor, params: KeluargaListParams) {
+  const allowNomorKK = canReadNomorKK(actor.peran);
+
   const { q, page, pageSize, unitGerejaId, sortBy, sortOrder } = params;
+
+  const unitScope = await createUnitScope(actor, unitGerejaId);
+
+  const searchConditions: Prisma.KeluargaWhereInput[] = [];
+
+  if (q) {
+    searchConditions.push(
+      {
+        namaKepalaKeluarga: {
+          contains: q,
+          mode: "insensitive",
+        },
+      },
+
+      {
+        alamat: {
+          contains: q,
+          mode: "insensitive",
+        },
+      },
+
+      {
+        noHp: {
+          contains: q,
+        },
+      },
+
+      {
+        unitGereja: {
+          is: {
+            kode: {
+              contains: q,
+              mode: "insensitive",
+            },
+          },
+        },
+      },
+
+      {
+        unitGereja: {
+          is: {
+            nama: {
+              contains: q,
+              mode: "insensitive",
+            },
+          },
+        },
+      },
+    );
+
+    /*
+     * Role tanpa izin tidak dapat
+     * menguji keberadaan nomor KK
+     * melalui kolom pencarian.
+     */
+    if (allowNomorKK) {
+      searchConditions.push({
+        nomorKK: {
+          contains: q,
+        },
+      });
+    }
+  }
 
   const where: Prisma.KeluargaWhereInput = {
     deletedAt: null,
 
-    ...(unitGerejaId
-      ? {
-          unitGerejaId,
-        }
-      : {}),
+    ...unitScope,
 
     ...(q
       ? {
-          OR: [
-            {
-              nomorKK: {
-                contains: q,
-              },
-            },
-            {
-              namaKepalaKeluarga: {
-                contains: q,
-                mode: "insensitive",
-              },
-            },
-            {
-              alamat: {
-                contains: q,
-                mode: "insensitive",
-              },
-            },
-            {
-              noHp: {
-                contains: q,
-              },
-            },
-            {
-              unitGereja: {
-                kode: {
-                  contains: q,
-                  mode: "insensitive",
-                },
-              },
-            },
-            {
-              unitGereja: {
-                nama: {
-                  contains: q,
-                  mode: "insensitive",
-                },
-              },
-            },
-          ],
+          OR: searchConditions,
         }
       : {}),
   };
@@ -187,9 +277,13 @@ export async function getKeluargaList(params: KeluargaListParams) {
   const [data, total] = await prisma.$transaction([
     prisma.keluarga.findMany({
       where,
+
       select: keluargaSelect,
-      orderBy: getOrderBy(sortBy, sortOrder),
+
+      orderBy: getOrderBy(sortBy, sortOrder, allowNomorKK),
+
       skip: (page - 1) * pageSize,
+
       take: pageSize,
     }),
 
@@ -201,20 +295,22 @@ export async function getKeluargaList(params: KeluargaListParams) {
   const totalPages = Math.ceil(total / pageSize);
 
   return {
-    data: data.map(mapKeluarga),
+    data: data.map((keluarga) => mapKeluarga(keluarga, allowNomorKK)),
 
     pagination: {
       page,
       pageSize,
       total,
       totalPages,
+
       hasNextPage: page < totalPages,
+
       hasPreviousPage: page > 1,
     },
   };
 }
 
-export async function getKeluargaById(id: string) {
+export async function getKeluargaById(actor: AppActor, id: string) {
   const keluarga = await prisma.keluarga.findFirst({
     where: {
       id,
@@ -231,15 +327,21 @@ export async function getKeluargaById(id: string) {
     });
   }
 
-  return mapKeluarga(keluarga);
+  await assertCanAccessUnit(actor, keluarga.unitGerejaId);
+
+  return mapKeluarga(keluarga, canReadNomorKK(actor.peran));
 }
 
-export async function createKeluarga(input: CreateKeluargaInput) {
+export async function createKeluarga(actor: AppActor, input: CreateKeluargaInput) {
+  await assertCanAccessUnit(actor, input.unitGerejaId);
+
   await assertUnitGerejaAvailable(input.unitGerejaId);
+
+  const nomorKK = normalizeNomorKK(input.nomorKK);
 
   const existing = await prisma.keluarga.findUnique({
     where: {
-      nomorKK: input.nomorKK,
+      nomorKK,
     },
 
     select: {
@@ -252,53 +354,66 @@ export async function createKeluarga(input: CreateKeluargaInput) {
     throw new AppError("Nomor KK sudah terdaftar.", {
       status: 409,
       code: "CONFLICT",
+
       fieldErrors: {
         nomorKK: ["Nomor KK sudah terdaftar."],
       },
     });
   }
 
-  /*
-   * nomorKK memakai unique constraint.
-   * Jika record lama sudah soft delete,
-   * pulihkan record tersebut.
-   */
-  if (existing?.deletedAt) {
-    const restored = await prisma.keluarga.update({
-      where: {
-        id: existing.id,
-      },
+  try {
+    /*
+     * Nomor KK menggunakan unique
+     * constraint. Record soft-delete
+     * dengan nomor yang sama dipulihkan.
+     */
+    if (existing?.deletedAt) {
+      const restored = await prisma.keluarga.update({
+        where: {
+          id: existing.id,
+        },
 
+        data: {
+          unitGerejaId: input.unitGerejaId,
+
+          namaKepalaKeluarga: input.namaKepalaKeluarga.trim(),
+
+          alamat: normalizeOptionalText(input.alamat),
+
+          noHp: normalizeOptionalText(input.noHp),
+
+          deletedAt: null,
+        },
+
+        select: keluargaSelect,
+      });
+
+      return mapKeluarga(restored, canReadNomorKK(actor.peran));
+    }
+
+    const keluarga = await prisma.keluarga.create({
       data: {
         unitGerejaId: input.unitGerejaId,
+
+        nomorKK,
+
         namaKepalaKeluarga: input.namaKepalaKeluarga.trim(),
+
         alamat: normalizeOptionalText(input.alamat),
+
         noHp: normalizeOptionalText(input.noHp),
-        deletedAt: null,
       },
 
       select: keluargaSelect,
     });
 
-    return mapKeluarga(restored);
+    return mapKeluarga(keluarga, canReadNomorKK(actor.peran));
+  } catch (error) {
+    throwNomorKKConflict(error);
   }
-
-  const keluarga = await prisma.keluarga.create({
-    data: {
-      unitGerejaId: input.unitGerejaId,
-      nomorKK: input.nomorKK,
-      namaKepalaKeluarga: input.namaKepalaKeluarga.trim(),
-      alamat: normalizeOptionalText(input.alamat),
-      noHp: normalizeOptionalText(input.noHp),
-    },
-
-    select: keluargaSelect,
-  });
-
-  return mapKeluarga(keluarga);
 }
 
-export async function updateKeluarga(id: string, input: UpdateKeluargaInput) {
+export async function updateKeluarga(actor: AppActor, id: string, input: UpdateKeluargaInput) {
   const current = await prisma.keluarga.findFirst({
     where: {
       id,
@@ -308,6 +423,7 @@ export async function updateKeluarga(id: string, input: UpdateKeluargaInput) {
     select: {
       id: true,
       unitGerejaId: true,
+      nomorKK: true,
     },
   });
 
@@ -318,13 +434,21 @@ export async function updateKeluarga(id: string, input: UpdateKeluargaInput) {
     });
   }
 
+  /*
+   * Actor harus memiliki akses
+   * ke unit lama dan unit tujuan.
+   */
+  await assertCanAccessUnit(actor, current.unitGerejaId);
+
+  await assertCanAccessUnit(actor, input.unitGerejaId);
+
   await assertUnitGerejaAvailable(input.unitGerejaId);
 
   if (current.unitGerejaId !== input.unitGerejaId) {
     /*
-     * Hitung semua anggota, termasuk record
-     * yang sudah soft delete, karena relasi
-     * historis tetap menunjuk keluarga ini.
+     * Anggota soft-delete tetap dihitung
+     * karena relasi historis masih
+     * menunjuk keluarga tersebut.
      */
     const memberCount = await prisma.jemaat.count({
       where: {
@@ -338,6 +462,7 @@ export async function updateKeluarga(id: string, input: UpdateKeluargaInput) {
         {
           status: 409,
           code: "CONFLICT",
+
           fieldErrors: {
             unitGerejaId: ["Keluarga masih mempunyai data anggota jemaat."],
           },
@@ -346,46 +471,68 @@ export async function updateKeluarga(id: string, input: UpdateKeluargaInput) {
     }
   }
 
-  const duplicate = await prisma.keluarga.findUnique({
-    where: {
-      nomorKK: input.nomorKK,
-    },
+  const allowNomorKK = canReadNomorKK(actor.peran);
 
-    select: {
-      id: true,
-    },
-  });
+  /*
+   * Role tanpa izin membaca nomor KK
+   * tidak boleh mengubahnya melalui
+   * request API manual.
+   */
+  const nomorKK = allowNomorKK
+    ? normalizeNomorKK(input.nomorKK ?? current.nomorKK)
+    : current.nomorKK;
 
-  if (duplicate && duplicate.id !== id) {
-    throw new AppError("Nomor KK sudah terdaftar.", {
-      status: 409,
-      code: "CONFLICT",
-      fieldErrors: {
-        nomorKK: ["Nomor KK sudah terdaftar."],
+  if (nomorKK !== current.nomorKK) {
+    const duplicate = await prisma.keluarga.findUnique({
+      where: {
+        nomorKK,
+      },
+
+      select: {
+        id: true,
       },
     });
+
+    if (duplicate && duplicate.id !== id) {
+      throw new AppError("Nomor KK sudah terdaftar.", {
+        status: 409,
+        code: "CONFLICT",
+
+        fieldErrors: {
+          nomorKK: ["Nomor KK sudah terdaftar."],
+        },
+      });
+    }
   }
 
-  const keluarga = await prisma.keluarga.update({
-    where: {
-      id,
-    },
+  try {
+    const keluarga = await prisma.keluarga.update({
+      where: {
+        id,
+      },
 
-    data: {
-      unitGerejaId: input.unitGerejaId,
-      nomorKK: input.nomorKK,
-      namaKepalaKeluarga: input.namaKepalaKeluarga.trim(),
-      alamat: normalizeOptionalText(input.alamat),
-      noHp: normalizeOptionalText(input.noHp),
-    },
+      data: {
+        unitGerejaId: input.unitGerejaId,
 
-    select: keluargaSelect,
-  });
+        nomorKK,
 
-  return mapKeluarga(keluarga);
+        namaKepalaKeluarga: input.namaKepalaKeluarga.trim(),
+
+        alamat: normalizeOptionalText(input.alamat),
+
+        noHp: normalizeOptionalText(input.noHp),
+      },
+
+      select: keluargaSelect,
+    });
+
+    return mapKeluarga(keluarga, allowNomorKK);
+  } catch (error) {
+    throwNomorKKConflict(error);
+  }
 }
 
-export async function deleteKeluarga(id: string) {
+export async function deleteKeluarga(actor: AppActor, id: string) {
   const keluarga = await prisma.keluarga.findFirst({
     where: {
       id,
@@ -395,6 +542,7 @@ export async function deleteKeluarga(id: string) {
     select: {
       id: true,
       namaKepalaKeluarga: true,
+      unitGerejaId: true,
     },
   });
 
@@ -404,6 +552,8 @@ export async function deleteKeluarga(id: string) {
       code: "NOT_FOUND",
     });
   }
+
+  await assertCanAccessUnit(actor, keluarga.unitGerejaId);
 
   const memberCount = await prisma.jemaat.count({
     where: {
@@ -433,16 +583,15 @@ export async function deleteKeluarga(id: string) {
   };
 }
 
-export async function getKeluargaOptions(unitGerejaId?: string) {
-  return prisma.keluarga.findMany({
+export async function getKeluargaOptions(actor: AppActor, unitGerejaId?: string) {
+  const allowNomorKK = canReadNomorKK(actor.peran);
+
+  const unitScope = await createUnitScope(actor, unitGerejaId);
+
+  const data = await prisma.keluarga.findMany({
     where: {
       deletedAt: null,
-
-      ...(unitGerejaId
-        ? {
-            unitGerejaId,
-          }
-        : {}),
+      ...unitScope,
     },
 
     select: {
@@ -456,4 +605,14 @@ export async function getKeluargaOptions(unitGerejaId?: string) {
       namaKepalaKeluarga: "asc",
     },
   });
+
+  return data.map((keluarga) => ({
+    id: keluarga.id,
+
+    unitGerejaId: keluarga.unitGerejaId,
+
+    nomorKK: allowNomorKK ? keluarga.nomorKK : null,
+
+    namaKepalaKeluarga: keluarga.namaKepalaKeluarga,
+  }));
 }

@@ -49,7 +49,7 @@ export function JemaatFormDialog({ open, onOpenChange, jemaat }: JemaatFormDialo
   const defaultValues: JemaatFormValues = jemaat
     ? {
         nomorIndukGereja: jemaat.nomorIndukGereja,
-        nik: jemaat.nik,
+        nik: jemaat.nik ?? "",
         namaLengkap: jemaat.namaLengkap,
         namaPanggilan: jemaat.namaPanggilan ?? "",
         jenisKelamin: jemaat.jenisKelamin,

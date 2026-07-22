@@ -3,7 +3,12 @@ import { Suspense } from "react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { JemaatTable } from "@/features/jemaat/components/jemaat-table";
-import { hasAnyRole, JEMAAT_READ_ROLES, JEMAAT_WRITE_ROLES } from "@/lib/auth/access-roles";
+import {
+  canReadNik,
+  hasAnyRole,
+  JEMAAT_READ_ROLES,
+  JEMAAT_WRITE_ROLES,
+} from "@/lib/auth/access-roles";
 import { requirePageRoles } from "@/lib/auth/require-page-role";
 
 export const metadata: Metadata = {
@@ -35,7 +40,7 @@ export default async function JemaatPage() {
       </div>
 
       <Suspense fallback={<TableFallback />}>
-        <JemaatTable canManage={canManage} />
+        <JemaatTable canManage={canManage} canViewNik={canReadNik(actor.profile.peran)} />
       </Suspense>
     </div>
   );

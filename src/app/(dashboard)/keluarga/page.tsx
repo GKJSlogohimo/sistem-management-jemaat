@@ -3,7 +3,12 @@ import { Suspense } from "react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { KeluargaTable } from "@/features/keluarga/components/keluarga-table";
-import { hasAnyRole, KELUARGA_READ_ROLES, KELUARGA_WRITE_ROLES } from "@/lib/auth/access-roles";
+import {
+  canReadNomorKK,
+  hasAnyRole,
+  KELUARGA_READ_ROLES,
+  KELUARGA_WRITE_ROLES,
+} from "@/lib/auth/access-roles";
 import { requirePageRoles } from "@/lib/auth/require-page-role";
 
 export const metadata: Metadata = {
@@ -42,7 +47,7 @@ export default async function KeluargaPage() {
       </div>
 
       <Suspense fallback={<KeluargaTableFallback />}>
-        <KeluargaTable canManage={canManage} />
+        <KeluargaTable canManage={canManage} canViewNomorKK={canReadNomorKK(actor.profile.peran)} />
       </Suspense>
     </div>
   );

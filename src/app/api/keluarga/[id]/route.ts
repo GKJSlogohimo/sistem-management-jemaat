@@ -17,7 +17,7 @@ type KeluargaRouteProps = {
 
 export async function GET(request: Request, { params }: KeluargaRouteProps) {
   try {
-    await requireApiRoles(request.headers, KELUARGA_READ_ROLES);
+    const actor = await requireApiRoles(request.headers, KELUARGA_READ_ROLES);
 
     const { id } = await params;
     const parsedId = keluargaIdSchema.safeParse(id);
@@ -28,7 +28,16 @@ export async function GET(request: Request, { params }: KeluargaRouteProps) {
       });
     }
 
-    const keluarga = await getKeluargaById(parsedId.data);
+    const keluarga = await getKeluargaById(
+      {
+        userId: actor.session.user.id,
+
+        peran: actor.profile.peran,
+
+        unitGerejaId: actor.profile.unitGerejaId,
+      },
+      parsedId.data,
+    );
 
     return apiSuccess(keluarga);
   } catch (error) {
@@ -38,7 +47,7 @@ export async function GET(request: Request, { params }: KeluargaRouteProps) {
 
 export async function PATCH(request: Request, { params }: KeluargaRouteProps) {
   try {
-    await requireApiRoles(request.headers, KELUARGA_WRITE_ROLES);
+    const actor = await requireApiRoles(request.headers, KELUARGA_WRITE_ROLES);
 
     const { id } = await params;
     const parsedId = keluargaIdSchema.safeParse(id);
@@ -57,7 +66,17 @@ export async function PATCH(request: Request, { params }: KeluargaRouteProps) {
       return apiValidationError(parsed.error);
     }
 
-    const keluarga = await updateKeluarga(parsedId.data, parsed.data);
+    const keluarga = await updateKeluarga(
+      {
+        userId: actor.session.user.id,
+
+        peran: actor.profile.peran,
+
+        unitGerejaId: actor.profile.unitGerejaId,
+      },
+      parsedId.data,
+      parsed.data,
+    );
 
     return apiSuccess(keluarga, {
       message: "Data keluarga berhasil diperbarui.",
@@ -69,7 +88,7 @@ export async function PATCH(request: Request, { params }: KeluargaRouteProps) {
 
 export async function DELETE(request: Request, { params }: KeluargaRouteProps) {
   try {
-    await requireApiRoles(request.headers, KELUARGA_WRITE_ROLES);
+    const actor = await requireApiRoles(request.headers, KELUARGA_WRITE_ROLES);
 
     const { id } = await params;
     const parsedId = keluargaIdSchema.safeParse(id);
@@ -80,7 +99,16 @@ export async function DELETE(request: Request, { params }: KeluargaRouteProps) {
       });
     }
 
-    const result = await deleteKeluarga(parsedId.data);
+    const result = await deleteKeluarga(
+      {
+        userId: actor.session.user.id,
+
+        peran: actor.profile.peran,
+
+        unitGerejaId: actor.profile.unitGerejaId,
+      },
+      parsedId.data,
+    );
 
     return apiSuccess(result, {
       message: "Data keluarga berhasil dihapus.",

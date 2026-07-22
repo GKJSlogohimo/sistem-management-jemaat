@@ -39,8 +39,9 @@ function isSortField(value: string): value is SortField {
 
 type KeluargaTableProps = {
   canManage: boolean;
+  canViewNomorKK: boolean;
 };
-export function KeluargaTable({ canManage }: KeluargaTableProps) {
+export function KeluargaTable({ canManage, canViewNomorKK }: KeluargaTableProps) {
   const { search, debouncedSearch, pagination, setSearch, resetSearch, onPaginationChange } =
     useDataTableQueryParams();
 
@@ -87,6 +88,7 @@ export function KeluargaTable({ canManage }: KeluargaTableProps) {
     () =>
       getKeluargaColumns({
         canManage,
+        canViewNomorKK,
         onEdit: (keluarga) => {
           setSelectedKeluarga(keluarga);
           setFormOpen(true);
@@ -97,7 +99,7 @@ export function KeluargaTable({ canManage }: KeluargaTableProps) {
           setDeleteOpen(true);
         },
       }),
-    [canManage],
+    [canManage, canViewNomorKK],
   );
 
   const handleSortingChange: OnChangeFn<SortingState> = (updater) => {
@@ -214,14 +216,9 @@ export function KeluargaTable({ canManage }: KeluargaTableProps) {
 
       <KeluargaFormDialog
         open={formOpen}
-        onOpenChange={(open) => {
-          setFormOpen(open);
-
-          if (!open) {
-            setSelectedKeluarga(null);
-          }
-        }}
+        onOpenChange={setFormOpen}
         keluarga={selectedKeluarga}
+        canViewNomorKK={canViewNomorKK}
       />
 
       <DeleteKeluargaDialog

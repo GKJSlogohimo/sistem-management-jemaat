@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getLaporanEvent } from "@/features/laporan-event/server/laporan-event.service";
 import { buildLaporanEventCsv } from "@/features/laporan-event/server/laporan-event-csv";
 import { handleApiError } from "@/lib/api/handle-api-error";
+import { canReadNik } from "@/lib/auth/access-roles";
 import { requireActiveProfile } from "@/lib/auth/require-profile";
 
 const paramsSchema = z.object({
@@ -39,7 +40,11 @@ export async function GET(request: Request, context: RouteContext) {
       params.id,
     );
 
-    const csv = buildLaporanEventCsv(laporan);
+    const includeNik = canReadNik(actor.profile.peran);
+
+    const csv = buildLaporanEventCsv(laporan, {
+      includeNik,
+    });
 
     const filename = createSafeFilename(laporan.event.nama) || "event";
 

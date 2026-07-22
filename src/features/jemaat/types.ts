@@ -19,7 +19,7 @@ export type WilayahReference = {
 
 export type KeluargaReference = {
   id: string;
-  nomorKK: string;
+  nomorKK: string | null;
   namaKepalaKeluarga: string;
 };
 
@@ -32,14 +32,14 @@ export type WilayahOption = {
 export type KeluargaOption = {
   id: string;
   unitGerejaId: string;
-  nomorKK: string;
+  nomorKK: string | null;
   namaKepalaKeluarga: string;
 };
 
 export type JemaatListItem = {
   id: string;
   nomorIndukGereja: string;
-  nik: string;
+  nik: string | null;
   namaLengkap: string;
   namaPanggilan: string | null;
   jenisKelamin: JenisKelaminValue;

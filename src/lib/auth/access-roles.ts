@@ -154,3 +154,19 @@ export const OPERASIONAL_EVENT_READ_ROLES = [
   PeranPengguna.PETUGAS_ANTREAN,
   PeranPengguna.PELAYAN,
 ] as const;
+
+export const IDENTITAS_SENSITIF_READ_ROLES = [
+  PeranPengguna.SUPER_ADMIN,
+  PeranPengguna.PANITIA_EVENT,
+  PeranPengguna.PETUGAS_REGISTRASI,
+  PeranPengguna.PETUGAS_ANTREAN,
+  PeranPengguna.PELAYAN,
+] as const;
+
+export function canReadNik(role: PeranPengguna) {
+  return hasAnyRole(role, IDENTITAS_SENSITIF_READ_ROLES);
+}
+
+export function canReadNomorKK(role: PeranPengguna) {
+  return hasAnyRole(role, IDENTITAS_SENSITIF_READ_ROLES);
+}

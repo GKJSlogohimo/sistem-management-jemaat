@@ -12,7 +12,7 @@ const querySchema = z.object({
 
 export async function GET(request: Request) {
   try {
-    await requireApiRoles(request.headers, KELUARGA_READ_ROLES);
+    const actor = await requireApiRoles(request.headers, KELUARGA_READ_ROLES);
 
     const searchParams = Object.fromEntries(new URL(request.url).searchParams.entries());
 
@@ -22,7 +22,16 @@ export async function GET(request: Request) {
       return apiValidationError(parsed.error);
     }
 
-    const options = await getKeluargaOptions(parsed.data.unitGerejaId);
+    const options = await getKeluargaOptions(
+      {
+        userId: actor.session.user.id,
+
+        peran: actor.profile.peran,
+
+        unitGerejaId: actor.profile.unitGerejaId,
+      },
+      parsed.data.unitGerejaId,
+    );
 
     return apiSuccess(options);
   } catch (error) {

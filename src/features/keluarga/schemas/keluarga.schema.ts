@@ -1,10 +1,10 @@
 import { z } from "zod";
 
-const nomorKkSchema = z
+export const nomorKkSchema = z
   .string()
   .trim()
   .min(1, "Nomor KK wajib diisi.")
-  .regex(/^[0-9]{16}$/, "Nomor KK harus terdiri dari tepat 16 digit angka.");
+  .regex(/^\d{16}$/, "Nomor KK harus terdiri dari tepat 16 digit angka.");
 
 const optionalPhoneSchema = z
   .string()
@@ -14,10 +14,12 @@ const optionalPhoneSchema = z
     message: "Format nomor HP tidak valid.",
   });
 
-export const keluargaFormSchema = z.object({
-  unitGerejaId: z.string().min(1, "Unit gereja wajib dipilih.").uuid("Unit gereja tidak valid."),
-
-  nomorKK: nomorKkSchema,
+const keluargaBaseSchema = z.object({
+  unitGerejaId: z
+    .string()
+    .trim()
+    .min(1, "Unit gereja wajib dipilih.")
+    .uuid("Unit gereja tidak valid."),
 
   namaKepalaKeluarga: z
     .string()
@@ -31,10 +33,68 @@ export const keluargaFormSchema = z.object({
   noHp: optionalPhoneSchema,
 });
 
-export const keluargaListQuerySchema = z.object({
-  q: z.string().trim().max(100).default(""),
+/**
+ * Schema form dapat disesuaikan berdasarkan
+ * apakah Nomor KK wajib ditampilkan.
+ *
+ * Bentuk input dan output tetap sama:
+ * semua field selalu string.
+ */
+export function createKeluargaFormSchema(requireNomorKK: boolean) {
+  return keluargaBaseSchema.extend({
+    nomorKK: z
+      .string()
+      .trim()
+      .superRefine((value, context) => {
+        if (!requireNomorKK && value.length === 0) {
+          return;
+        }
 
-  page: z.coerce.number().int().min(1).default(1),
+        if (value.length === 0) {
+          context.addIssue({
+            code: "custom",
+            message: "Nomor KK wajib diisi.",
+          });
+
+          return;
+        }
+
+        if (!/^\d{16}$/.test(value)) {
+          context.addIssue({
+            code: "custom",
+            message: "Nomor KK harus terdiri dari tepat 16 digit angka.",
+          });
+        }
+      }),
+  });
+}
+
+/**
+ * Schema form create standar.
+ */
+export const keluargaFormSchema = createKeluargaFormSchema(true);
+
+/**
+ * Schema request API create.
+ * Nomor KK selalu wajib.
+ */
+export const createKeluargaSchema = keluargaBaseSchema.extend({
+  nomorKK: nomorKkSchema,
+});
+
+/**
+ * Schema request API update.
+ * Nomor KK boleh tidak dikirim ketika
+ * actor tidak memiliki izin melihatnya.
+ */
+export const updateKeluargaSchema = keluargaBaseSchema.extend({
+  nomorKK: nomorKkSchema.optional(),
+});
+
+export const keluargaListQuerySchema = z.object({
+  q: z.string().trim().max(100, "Pencarian maksimal 100 karakter.").default(""),
+
+  page: z.coerce.number().int().min(1, "Halaman minimal 1.").default(1),
 
   pageSize: z.coerce
     .number()
@@ -44,7 +104,13 @@ export const keluargaListQuerySchema = z.object({
     })
     .default(10),
 
-  unitGerejaId: z.string().uuid().optional(),
+  unitGerejaId: z.preprocess((value) => {
+    if (value === undefined || value === null || value === "") {
+      return undefined;
+    }
+
+    return value;
+  }, z.string().uuid("Unit gereja tidak valid.").optional()),
 
   sortBy: z
     .enum(["nomorKK", "namaKepalaKeluarga", "unitGereja", "createdAt", "updatedAt"])
@@ -53,8 +119,12 @@ export const keluargaListQuerySchema = z.object({
   sortOrder: z.enum(["asc", "desc"]).default("asc"),
 });
 
-export const keluargaIdSchema = z.string().uuid();
+export const keluargaIdSchema = z.string().trim().uuid("ID keluarga tidak valid.");
 
 export type KeluargaFormValues = z.infer<typeof keluargaFormSchema>;
+
+export type CreateKeluargaInput = z.infer<typeof createKeluargaSchema>;
+
+export type UpdateKeluargaInput = z.infer<typeof updateKeluargaSchema>;
 
 export type KeluargaListQuery = z.infer<typeof keluargaListQuerySchema>;

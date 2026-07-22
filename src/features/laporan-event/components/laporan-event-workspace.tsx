@@ -19,6 +19,7 @@ import { useLaporanEvent } from "../hooks/use-laporan-event";
 
 type LaporanEventWorkspaceProps = {
   eventId: string;
+  canViewNik: boolean;
 };
 
 function formatDate(value: string | null) {
@@ -57,7 +58,7 @@ function getStatusVariant(status: string): "default" | "secondary" | "destructiv
   return "secondary";
 }
 
-export function LaporanEventWorkspace({ eventId }: LaporanEventWorkspaceProps) {
+export function LaporanEventWorkspace({ eventId, canViewNik }: LaporanEventWorkspaceProps) {
   const query = useLaporanEvent(eventId);
 
   if (query.isPending) {
@@ -203,6 +204,7 @@ export function LaporanEventWorkspace({ eventId }: LaporanEventWorkspaceProps) {
 
                 <TableHead>Antrean</TableHead>
 
+                {canViewNik ? <TableHead>NIK</TableHead> : null}
                 <TableHead>Nama</TableHead>
 
                 <TableHead>Jenis</TableHead>
@@ -223,6 +225,12 @@ export function LaporanEventWorkspace({ eventId }: LaporanEventWorkspaceProps) {
                   <TableCell>{index + 1}</TableCell>
 
                   <TableCell className="font-mono">{peserta.nomorAntrian ?? "-"}</TableCell>
+
+                  {canViewNik ? (
+                    <TableCell className="font-mono" colSpan={canViewNik ? 10 : 9}>
+                      {peserta.nik ?? "-"}
+                    </TableCell>
+                  ) : null}
 
                   <TableCell className="font-medium">{peserta.nama}</TableCell>
 

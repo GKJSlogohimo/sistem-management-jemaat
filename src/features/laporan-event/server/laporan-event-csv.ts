@@ -30,7 +30,12 @@ function formatDate(value: string | null) {
   }).format(new Date(value));
 }
 
-export function buildLaporanEventCsv(laporan: LaporanEvent) {
+export function buildLaporanEventCsv(
+  laporan: LaporanEvent,
+  options: {
+    includeNik: boolean;
+  },
+) {
   const rows: unknown[][] = [
     ["LAPORAN EVENT", laporan.event.nama],
 
@@ -59,7 +64,7 @@ export function buildLaporanEventCsv(laporan: LaporanEvent) {
     [
       "No.",
       "Nomor Antrean",
-      "NIK",
+      ...(options.includeNik ? ["NIK"] : []),
       "Nama Peserta",
       "Alamat",
       "Jenis Peserta",
@@ -78,7 +83,7 @@ export function buildLaporanEventCsv(laporan: LaporanEvent) {
 
       peserta.nomorAntrian ?? "",
 
-      peserta.nik ?? "",
+      ...(options.includeNik ? [peserta.nik ?? ""] : []),
 
       peserta.nama,
 

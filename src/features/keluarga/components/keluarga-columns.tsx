@@ -19,24 +19,18 @@ import type { KeluargaListItem } from "../types";
 
 type KeluargaColumnsOptions = {
   canManage: boolean;
+  canViewNomorKK: boolean;
   onEdit: (keluarga: KeluargaListItem) => void;
   onDelete: (keluarga: KeluargaListItem) => void;
 };
 
 export function getKeluargaColumns({
   canManage,
+  canViewNomorKK,
   onEdit,
   onDelete,
 }: KeluargaColumnsOptions): ColumnDef<KeluargaListItem>[] {
   const columns: ColumnDef<KeluargaListItem>[] = [
-    {
-      accessorKey: "nomorKK",
-
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Nomor KK" />,
-
-      cell: ({ row }) => <span className="font-mono text-sm">{row.original.nomorKK}</span>,
-    },
-
     {
       accessorKey: "namaKepalaKeluarga",
 
@@ -87,6 +81,16 @@ export function getKeluargaColumns({
       cell: ({ row }) => <Badge variant="secondary">{row.original.jumlahAnggota}</Badge>,
     },
   ];
+
+  if (canViewNomorKK) {
+    columns.push({
+      accessorKey: "nomorKK",
+
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Nomor KK" />,
+
+      cell: ({ row }) => <span className="font-mono text-sm">{row.original.nomorKK}</span>,
+    });
+  }
 
   if (canManage) {
     columns.push({

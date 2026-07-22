@@ -8,14 +8,7 @@ import { Controller, useForm } from "react-hook-form";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Field,
@@ -173,7 +166,7 @@ export function LoginForm() {
         </form>
       </CardContent>
 
-      <CardFooter className="justify-center">
+      {/* <CardFooter className="justify-center">
         <p className="text-sm text-muted-foreground">
           Belum memiliki akun?{" "}
           <Link
@@ -183,7 +176,7 @@ export function LoginForm() {
             Daftar
           </Link>
         </p>
-      </CardFooter>
+      </CardFooter> */}
     </Card>
   );
 }

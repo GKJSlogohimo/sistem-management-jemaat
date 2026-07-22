@@ -20,12 +20,14 @@ import type { JemaatListItem } from "../types";
 
 type Options = {
   canManage: boolean;
+  canViewNik: boolean;
   onEdit: (jemaat: JemaatListItem) => void;
   onDelete: (jemaat: JemaatListItem) => void;
 };
 
 export function getJemaatColumns({
   canManage,
+  canViewNik,
   onEdit,
   onDelete,
 }: Options): ColumnDef<JemaatListItem>[] {
@@ -41,7 +43,9 @@ export function getJemaatColumns({
       cell: ({ row }) => (
         <div>
           <p className="font-medium">{row.original.namaLengkap}</p>
-          <p className="text-xs text-muted-foreground">NIK {row.original.nik}</p>
+          {canViewNik ? (
+            <p className="text-xs text-muted-foreground">NIK {row.original.nik}</p>
+          ) : null}
         </div>
       ),
     },
