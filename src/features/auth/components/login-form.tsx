@@ -110,7 +110,7 @@ export function LoginForm() {
                     <FieldLabel htmlFor={field.name}>Kata sandi</FieldLabel>
 
                     <Link
-                      href="/lupa-password"
+                      href="/lupa-kata-sandi"
                       className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
                     >
                       Lupa kata sandi?
