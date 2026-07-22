@@ -29,7 +29,10 @@ const sortFields = ["nama", "tanggalMulai", "status", "jenis", "createdAt", "upd
 
 type SortField = (typeof sortFields)[number];
 
-export function EventTable() {
+type EventTableProps = {
+  canManage: boolean;
+};
+export function EventTable({ canManage }: EventTableProps) {
   const { search, debouncedSearch, pagination, setSearch, resetSearch, onPaginationChange } =
     useDataTableQueryParams();
 
@@ -97,6 +100,7 @@ export function EventTable() {
   const columns = useMemo(
     () =>
       getEventColumns({
+        canManage,
         onEdit: (event) => {
           setSelected(event);
           setFormOpen(true);
@@ -107,7 +111,7 @@ export function EventTable() {
           setDeleteOpen(true);
         },
       }),
-    [],
+    [canManage],
   );
 
   const meta = query.data?.meta?.pagination;
@@ -272,16 +276,18 @@ export function EventTable() {
               ) : null}
             </div>
 
-            <Button
-              type="button"
-              onClick={() => {
-                setSelected(null);
-                setFormOpen(true);
-              }}
-            >
-              <Plus />
-              Tambah Event
-            </Button>
+            {canManage ? (
+              <Button
+                type="button"
+                onClick={() => {
+                  setSelected(null);
+                  setFormOpen(true);
+                }}
+              >
+                <Plus />
+                Tambah Event
+              </Button>
+            ) : null}
           </div>
         )}
       />

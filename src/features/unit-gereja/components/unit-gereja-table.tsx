@@ -22,7 +22,11 @@ function isSortField(value: string): value is SortField {
   return allowedSortFields.includes(value as SortField);
 }
 
-export function UnitGerejaTable() {
+type UnitGerejaTableProps = {
+  canManage: boolean;
+};
+
+export function UnitGerejaTable({ canManage }: UnitGerejaTableProps) {
   const { search, debouncedSearch, pagination, setSearch, resetSearch, onPaginationChange } =
     useDataTableQueryParams();
 
@@ -56,6 +60,7 @@ export function UnitGerejaTable() {
   const columns = useMemo(
     () =>
       getUnitGerejaColumns({
+        canManage,
         onEdit: (unit) => {
           setSelectedUnit(unit);
           setFormOpen(true);
@@ -66,7 +71,7 @@ export function UnitGerejaTable() {
           setDeleteOpen(true);
         },
       }),
-    [],
+    [canManage],
   );
 
   const handleSortingChange: OnChangeFn<SortingState> = (updater) => {
@@ -115,16 +120,18 @@ export function UnitGerejaTable() {
               placeholder="Cari kode, nama, atau alamat..."
             />
 
-            <Button
-              type="button"
-              onClick={() => {
-                setSelectedUnit(null);
-                setFormOpen(true);
-              }}
-            >
-              <Plus />
-              Tambah Unit Gereja
-            </Button>
+            {canManage ? (
+              <Button
+                type="button"
+                onClick={() => {
+                  setSelectedUnit(null);
+                  setFormOpen(true);
+                }}
+              >
+                <Plus />
+                Tambah Unit Gereja
+              </Button>
+            ) : null}
           </div>
         )}
       />

@@ -1,9 +1,9 @@
 import { jemaatFormSchema, jemaatIdSchema } from "@/features/jemaat/schemas/jemaat.schema";
 import { deleteJemaat, getJemaatById, updateJemaat } from "@/features/jemaat/server/jemaat.service";
-import { PeranPengguna } from "@/generated/prisma/enums";
 import { apiError, apiSuccess, apiValidationError } from "@/lib/api/api-response";
 import { handleApiError } from "@/lib/api/handle-api-error";
-import { requireActiveProfile, requireRoles } from "@/lib/auth/require-profile";
+import { JEMAAT_READ_ROLES, JEMAAT_WRITE_ROLES } from "@/lib/auth/access-roles";
+import { requireApiRoles } from "@/lib/auth/require-api-role";
 
 type JemaatRouteProps = {
   params: Promise<{
@@ -13,7 +13,7 @@ type JemaatRouteProps = {
 
 export async function GET(request: Request, { params }: JemaatRouteProps) {
   try {
-    await requireActiveProfile(request.headers);
+    await requireApiRoles(request.headers, JEMAAT_READ_ROLES);
 
     const { id } = await params;
     const parsedId = jemaatIdSchema.safeParse(id);
@@ -32,7 +32,7 @@ export async function GET(request: Request, { params }: JemaatRouteProps) {
 
 export async function PATCH(request: Request, { params }: JemaatRouteProps) {
   try {
-    await requireRoles(request.headers, [PeranPengguna.SUPER_ADMIN]);
+    await requireApiRoles(request.headers, JEMAAT_WRITE_ROLES);
 
     const { id } = await params;
     const parsedId = jemaatIdSchema.safeParse(id);
@@ -62,7 +62,7 @@ export async function PATCH(request: Request, { params }: JemaatRouteProps) {
 
 export async function DELETE(request: Request, { params }: JemaatRouteProps) {
   try {
-    await requireRoles(request.headers, [PeranPengguna.SUPER_ADMIN]);
+    await requireApiRoles(request.headers, JEMAAT_WRITE_ROLES);
 
     const { id } = await params;
     const parsedId = jemaatIdSchema.safeParse(id);

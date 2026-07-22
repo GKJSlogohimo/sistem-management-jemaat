@@ -3,6 +3,8 @@ import { Suspense } from "react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { WilayahTable } from "@/features/wilayah/components/wilayah-table";
+import { hasAnyRole, WILAYAH_READ_ROLES, WILAYAH_WRITE_ROLES } from "@/lib/auth/access-roles";
+import { requirePageRoles } from "@/lib/auth/require-page-role";
 
 export const metadata: Metadata = {
   title: "Wilayah | Sistem Manajemen Jemaat",
@@ -25,7 +27,10 @@ function WilayahTableFallback() {
   );
 }
 
-export default function WilayahPage() {
+export default async function WilayahPage() {
+  const actor = await requirePageRoles(WILAYAH_READ_ROLES);
+
+  const canManage = hasAnyRole(actor.profile.peran, WILAYAH_WRITE_ROLES);
   return (
     <div className="space-y-6">
       <div>
@@ -37,7 +42,7 @@ export default function WilayahPage() {
       </div>
 
       <Suspense fallback={<WilayahTableFallback />}>
-        <WilayahTable />
+        <WilayahTable canManage={canManage} />
       </Suspense>
     </div>
   );

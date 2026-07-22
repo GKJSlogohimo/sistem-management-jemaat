@@ -3,6 +3,12 @@ import { Suspense } from "react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { KategoriEventTable } from "@/features/kategori-event/components/kategori-event-table";
+import {
+  hasAnyRole,
+  KATEGORI_EVENT_READ_ROLES,
+  KATEGORI_EVENT_WRITE_ROLES,
+} from "@/lib/auth/access-roles";
+import { requirePageRoles } from "@/lib/auth/require-page-role";
 
 export const metadata: Metadata = {
   title: "Kategori Event | Sistem Manajemen Jemaat",
@@ -25,7 +31,8 @@ function KategoriEventTableFallback() {
   );
 }
 
-export default function KategoriEventPage() {
+export default async function KategoriEventPage() {
+  const actor = await requirePageRoles(KATEGORI_EVENT_READ_ROLES);
   return (
     <div className="space-y-6">
       <div>
@@ -37,7 +44,9 @@ export default function KategoriEventPage() {
       </div>
 
       <Suspense fallback={<KategoriEventTableFallback />}>
-        <KategoriEventTable />
+        <KategoriEventTable
+          canManage={hasAnyRole(actor.profile.peran, KATEGORI_EVENT_WRITE_ROLES)}
+        />
       </Suspense>
     </div>
   );

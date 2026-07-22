@@ -3,6 +3,8 @@ import { Suspense } from "react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { JemaatTable } from "@/features/jemaat/components/jemaat-table";
+import { hasAnyRole, JEMAAT_READ_ROLES, JEMAAT_WRITE_ROLES } from "@/lib/auth/access-roles";
+import { requirePageRoles } from "@/lib/auth/require-page-role";
 
 export const metadata: Metadata = {
   title: "Jemaat | Sistem Manajemen Jemaat",
@@ -17,7 +19,11 @@ function TableFallback() {
   );
 }
 
-export default function JemaatPage() {
+export default async function JemaatPage() {
+  const actor = await requirePageRoles(JEMAAT_READ_ROLES);
+
+  const canManage = hasAnyRole(actor.profile.peran, JEMAAT_WRITE_ROLES);
+
   return (
     <div className="space-y-6">
       <div>
@@ -29,7 +35,7 @@ export default function JemaatPage() {
       </div>
 
       <Suspense fallback={<TableFallback />}>
-        <JemaatTable />
+        <JemaatTable canManage={canManage} />
       </Suspense>
     </div>
   );

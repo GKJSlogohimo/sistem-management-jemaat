@@ -4,10 +4,10 @@ import {
   getWilayahById,
   updateWilayah,
 } from "@/features/wilayah/server/wilayah.service";
-import { PeranPengguna } from "@/generated/prisma/client";
 import { apiError, apiSuccess, apiValidationError } from "@/lib/api/api-response";
 import { handleApiError } from "@/lib/api/handle-api-error";
-import { requireActiveProfile, requireRoles } from "@/lib/auth/require-profile";
+import { WILAYAH_READ_ROLES, WILAYAH_WRITE_ROLES } from "@/lib/auth/access-roles";
+import { requireApiRoles } from "@/lib/auth/require-api-role";
 
 type WilayahRouteProps = {
   params: Promise<{
@@ -17,7 +17,7 @@ type WilayahRouteProps = {
 
 export async function GET(request: Request, { params }: WilayahRouteProps) {
   try {
-    await requireActiveProfile(request.headers);
+    await requireApiRoles(request.headers, WILAYAH_READ_ROLES);
 
     const { id } = await params;
     const parsedId = wilayahIdSchema.safeParse(id);
@@ -38,7 +38,7 @@ export async function GET(request: Request, { params }: WilayahRouteProps) {
 
 export async function PATCH(request: Request, { params }: WilayahRouteProps) {
   try {
-    await requireRoles(request.headers, [PeranPengguna.SUPER_ADMIN]);
+    await requireApiRoles(request.headers, WILAYAH_WRITE_ROLES);
 
     const { id } = await params;
     const parsedId = wilayahIdSchema.safeParse(id);
@@ -68,7 +68,7 @@ export async function PATCH(request: Request, { params }: WilayahRouteProps) {
 
 export async function DELETE(request: Request, { params }: WilayahRouteProps) {
   try {
-    await requireRoles(request.headers, [PeranPengguna.SUPER_ADMIN]);
+    await requireApiRoles(request.headers, WILAYAH_WRITE_ROLES);
 
     const { id } = await params;
     const parsedId = wilayahIdSchema.safeParse(id);

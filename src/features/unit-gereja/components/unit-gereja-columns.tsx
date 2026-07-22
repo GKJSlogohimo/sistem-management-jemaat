@@ -19,15 +19,17 @@ import { jenisUnitGerejaLabels } from "../constants";
 import type { UnitGerejaListItem } from "../types";
 
 type UnitGerejaColumnsOptions = {
+  canManage: boolean;
   onEdit: (unit: UnitGerejaListItem) => void;
   onDelete: (unit: UnitGerejaListItem) => void;
 };
 
 export function getUnitGerejaColumns({
+  canManage,
   onEdit,
   onDelete,
 }: UnitGerejaColumnsOptions): ColumnDef<UnitGerejaListItem>[] {
-  return [
+  const columns: ColumnDef<UnitGerejaListItem>[] = [
     {
       accessorKey: "kode",
       header: ({ column }) => <DataTableColumnHeader column={column} title="Kode" />,
@@ -74,7 +76,10 @@ export function getUnitGerejaColumns({
         </Badge>
       ),
     },
-    {
+  ];
+
+  if (canManage) {
+    columns.push({
       id: "actions",
       enableSorting: false,
       enableHiding: false,
@@ -110,6 +115,8 @@ export function getUnitGerejaColumns({
           </div>
         );
       },
-    },
-  ];
+    });
+  }
+
+  return columns;
 }

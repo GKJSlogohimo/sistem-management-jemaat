@@ -3,14 +3,14 @@ import {
   keluargaListQuerySchema,
 } from "@/features/keluarga/schemas/keluarga.schema";
 import { createKeluarga, getKeluargaList } from "@/features/keluarga/server/keluarga.service";
-import { PeranPengguna } from "@/generated/prisma/client";
 import { apiPaginated, apiSuccess, apiValidationError } from "@/lib/api/api-response";
 import { handleApiError } from "@/lib/api/handle-api-error";
-import { requireActiveProfile, requireRoles } from "@/lib/auth/require-profile";
+import { KELUARGA_READ_ROLES, KELUARGA_WRITE_ROLES } from "@/lib/auth/access-roles";
+import { requireApiRoles } from "@/lib/auth/require-api-role";
 
 export async function GET(request: Request) {
   try {
-    await requireActiveProfile(request.headers);
+    await requireApiRoles(request.headers, KELUARGA_READ_ROLES);
 
     const searchParams = Object.fromEntries(new URL(request.url).searchParams.entries());
 
@@ -30,7 +30,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    await requireRoles(request.headers, [PeranPengguna.SUPER_ADMIN]);
+    await requireApiRoles(request.headers, KELUARGA_WRITE_ROLES);
 
     const body = await request.json().catch(() => null);
 

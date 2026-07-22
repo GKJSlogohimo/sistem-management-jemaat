@@ -1,6 +1,6 @@
 import { eventFormSchema, eventListQuerySchema } from "@/features/event/schemas/event.schema";
 import { createEvent, getEventList } from "@/features/event/server/event.service";
-import { PeranPengguna } from "@/generated/prisma/client";
+import { PeranPengguna } from "@/generated/prisma/enums";
 import { apiPaginated, apiSuccess, apiValidationError } from "@/lib/api/api-response";
 import { handleApiError } from "@/lib/api/handle-api-error";
 import { requireActiveProfile, requireRoles } from "@/lib/auth/require-profile";

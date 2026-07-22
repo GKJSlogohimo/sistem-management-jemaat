@@ -20,13 +20,17 @@ import { formatEventDateTime, jenisEventLabels, statusEventLabels } from "../con
 import type { EventListItem } from "../types";
 
 type Options = {
+  canManage: boolean;
   onEdit: (event: EventListItem) => void;
-
   onDelete: (event: EventListItem) => void;
 };
 
-export function getEventColumns({ onEdit, onDelete }: Options): ColumnDef<EventListItem>[] {
-  return [
+export function getEventColumns({
+  canManage,
+  onEdit,
+  onDelete,
+}: Options): ColumnDef<EventListItem>[] {
+  const columns: ColumnDef<EventListItem>[] = [
     {
       accessorKey: "nama",
 
@@ -131,8 +135,10 @@ export function getEventColumns({ onEdit, onDelete }: Options): ColumnDef<EventL
         </Badge>
       ),
     },
+  ];
 
-    {
+  if (canManage) {
+    columns.push({
       id: "actions",
       enableSorting: false,
       enableHiding: false,
@@ -177,6 +183,7 @@ export function getEventColumns({ onEdit, onDelete }: Options): ColumnDef<EventL
           </div>
         );
       },
-    },
-  ];
+    });
+  }
+  return columns;
 }

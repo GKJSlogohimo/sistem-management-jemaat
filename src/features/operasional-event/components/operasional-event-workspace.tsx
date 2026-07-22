@@ -24,11 +24,13 @@ import {
   useOperasionalEventMutation,
   useOperasionalEventQuery,
 } from "../hooks/use-operasional-event";
+import { OperasionalEventCapabilities } from "../permissions";
 import type { ExecuteOperasionalEventInput, OperasionalParticipant } from "../types";
 import { CheckInDialog } from "./check-in-dialog";
 
-type Props = {
+type OperasionalEventWorkspaceProps = {
   eventId: string;
+  capabilities: OperasionalEventCapabilities;
 };
 
 function ParticipantIdentity({ peserta }: { peserta: OperasionalParticipant }) {
@@ -52,7 +54,10 @@ function ParticipantIdentity({ peserta }: { peserta: OperasionalParticipant }) {
   );
 }
 
-export function OperasionalEventWorkspace({ eventId }: Props) {
+export function OperasionalEventWorkspace({
+  eventId,
+  capabilities,
+}: OperasionalEventWorkspaceProps) {
   const [search, setSearch] = useState("");
 
   const deferredSearch = useDeferredValue(search);
@@ -201,29 +206,33 @@ export function OperasionalEventWorkspace({ eventId }: Props) {
               <ParticipantIdentity peserta={peserta} />
 
               <div className="flex gap-2">
-                <Button
-                  type="button"
-                  disabled={!eventActive || mutation.isPending}
-                  onClick={() => setSelectedCheckIn(peserta)}
-                >
-                  <UserCheck />
-                  Check-in
-                </Button>
+                {capabilities.canCheckIn ? (
+                  <>
+                    <Button
+                      type="button"
+                      disabled={!eventActive || mutation.isPending}
+                      onClick={() => setSelectedCheckIn(peserta)}
+                    >
+                      <UserCheck />
+                      Check-in
+                    </Button>
 
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={!eventActive || mutation.isPending}
-                  onClick={() => {
-                    void execute({
-                      action: "BATAL",
-                      pesertaId: peserta.id,
-                    });
-                  }}
-                >
-                  <UserRoundX />
-                  Batal
-                </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={!eventActive || mutation.isPending}
+                      onClick={() => {
+                        void execute({
+                          action: "BATAL",
+                          pesertaId: peserta.id,
+                        });
+                      }}
+                    >
+                      <UserRoundX />
+                      Batal
+                    </Button>
+                  </>
+                ) : null}
               </div>
             </div>
           ))}
@@ -246,18 +255,20 @@ export function OperasionalEventWorkspace({ eventId }: Props) {
                 <p className="text-sm text-muted-foreground">Urut berdasarkan nomor antrean.</p>
               </div>
 
-              <Button
-                type="button"
-                disabled={!eventActive || mutation.isPending || state.menunggu.length === 0}
-                onClick={() => {
-                  void execute({
-                    action: "PANGGIL_BERIKUTNYA",
-                  });
-                }}
-              >
-                <Volume2 />
-                Panggil berikutnya
-              </Button>
+              {capabilities.canCall ? (
+                <Button
+                  type="button"
+                  disabled={!eventActive || mutation.isPending || state.menunggu.length === 0}
+                  onClick={() => {
+                    void execute({
+                      action: "PANGGIL_BERIKUTNYA",
+                    });
+                  }}
+                >
+                  <Volume2 />
+                  Panggil berikutnya
+                </Button>
+              ) : null}
             </div>
 
             <div className="max-h-130 space-y-2 overflow-y-auto">
@@ -272,34 +283,38 @@ export function OperasionalEventWorkspace({ eventId }: Props) {
                   </div>
 
                   <div className="flex gap-2">
-                    <Button
-                      type="button"
-                      disabled={!eventActive || mutation.isPending}
-                      onClick={() => {
-                        void execute({
-                          action: "PANGGIL",
-                          pesertaId: peserta.id,
-                        });
-                      }}
-                    >
-                      <Volume2 />
-                      Panggil
-                    </Button>
+                    {capabilities.canCall ? (
+                      <Button
+                        type="button"
+                        disabled={!eventActive || mutation.isPending}
+                        onClick={() => {
+                          void execute({
+                            action: "PANGGIL",
+                            pesertaId: peserta.id,
+                          });
+                        }}
+                      >
+                        <Volume2 />
+                        Panggil
+                      </Button>
+                    ) : null}
 
-                    <Button
-                      type="button"
-                      size="icon"
-                      variant="outline"
-                      disabled={!eventActive || mutation.isPending}
-                      onClick={() => {
-                        void execute({
-                          action: "BATAL",
-                          pesertaId: peserta.id,
-                        });
-                      }}
-                    >
-                      <UserRoundX />
-                    </Button>
+                    {capabilities.canCancel ? (
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="outline"
+                        disabled={!eventActive || mutation.isPending}
+                        onClick={() => {
+                          void execute({
+                            action: "BATAL",
+                            pesertaId: peserta.id,
+                          });
+                        }}
+                      >
+                        <UserRoundX />
+                      </Button>
+                    ) : null}
                   </div>
                 </div>
               ))}
@@ -333,48 +348,54 @@ export function OperasionalEventWorkspace({ eventId }: Props) {
                   </div>
 
                   <div className="mt-4 flex flex-wrap gap-2">
-                    <Button
-                      type="button"
-                      disabled={!eventActive || mutation.isPending}
-                      onClick={() => {
-                        void execute({
-                          action: "SELESAI",
-                          pesertaId: peserta.id,
-                        });
-                      }}
-                    >
-                      <CheckCircle2 />
-                      Selesai
-                    </Button>
+                    {capabilities.canFinish ? (
+                      <Button
+                        type="button"
+                        disabled={!eventActive || mutation.isPending}
+                        onClick={() => {
+                          void execute({
+                            action: "SELESAI",
+                            pesertaId: peserta.id,
+                          });
+                        }}
+                      >
+                        <CheckCircle2 />
+                        Selesai
+                      </Button>
+                    ) : null}
 
-                    <Button
-                      type="button"
-                      variant="outline"
-                      disabled={!eventActive || mutation.isPending}
-                      onClick={() => {
-                        void execute({
-                          action: "KEMBALIKAN",
-                          pesertaId: peserta.id,
-                        });
-                      }}
-                    >
-                      <Clock3 />
-                      Kembali menunggu
-                    </Button>
+                    {capabilities.canReturn ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        disabled={!eventActive || mutation.isPending}
+                        onClick={() => {
+                          void execute({
+                            action: "KEMBALIKAN",
+                            pesertaId: peserta.id,
+                          });
+                        }}
+                      >
+                        <Clock3 />
+                        Kembali menunggu
+                      </Button>
+                    ) : null}
 
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      disabled={!eventActive || mutation.isPending}
-                      onClick={() => {
-                        void execute({
-                          action: "BATAL",
-                          pesertaId: peserta.id,
-                        });
-                      }}
-                    >
-                      Batal
-                    </Button>
+                    {capabilities.canCancel ? (
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        disabled={!eventActive || mutation.isPending}
+                        onClick={() => {
+                          void execute({
+                            action: "BATAL",
+                            pesertaId: peserta.id,
+                          });
+                        }}
+                      >
+                        Batal
+                      </Button>
+                    ) : null}
                   </div>
                 </div>
               ))}

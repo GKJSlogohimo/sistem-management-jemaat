@@ -8,7 +8,7 @@ import {
   deletePesertaEvent,
   updatePesertaEvent,
 } from "@/features/peserta-event/server/peserta-event.service";
-import { PeranPengguna } from "@/generated/prisma/client";
+import { PeranPengguna } from "@/generated/prisma/enums";
 import { apiError, apiSuccess, apiValidationError } from "@/lib/api/api-response";
 import { handleApiError } from "@/lib/api/handle-api-error";
 import { requireRoles } from "@/lib/auth/require-profile";

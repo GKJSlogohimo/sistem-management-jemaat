@@ -18,9 +18,13 @@ import { useEventRealtime } from "../hooks/use-event-realtime";
 
 type Props = {
   eventId: string;
+  permissions: {
+    canManageEvent: boolean;
+    canOpenOperasional: boolean;
+  };
 };
 
-export function EventWorkspace({ eventId }: Props) {
+export function EventWorkspace({ eventId, permissions }: Props) {
   const query = useEventDetailQuery(eventId);
 
   useEventRealtime(eventId);
@@ -45,15 +49,15 @@ export function EventWorkspace({ eventId }: Props) {
     <div className="space-y-6">
       <div>
         <div className="flex flex-wrap gap-2">
-          {event.gunakanCheckIn ? (
+          {event.gunakanCheckIn && permissions.canOpenOperasional ? (
             <Button asChild>
               <Link href={`/event/${event.id}/operasional`}>Buka operasional</Link>
             </Button>
           ) : null}
 
-          {event.gunakanAntrean ? (
+          {event.gunakanAntrean && permissions.canOpenOperasional ? (
             <Button variant="outline" asChild>
-              <Link href={`/event/${event.id}/display`} target="_blank">
+              <Link href={`/event/${event.id}/display`} target="_blank" rel="noopener noreferrer">
                 Buka display
               </Link>
             </Button>
@@ -84,9 +88,11 @@ export function EventWorkspace({ eventId }: Props) {
             </p>
           </div>
 
-          <Button variant="outline" asChild>
-            <Link href={`/event?edit=${event.id}`}>Edit Event</Link>
-          </Button>
+          {permissions.canManageEvent ? (
+            <Button variant="outline" asChild>
+              <Link href={`/event?edit=${event.id}`}>Edit Event</Link>
+            </Button>
+          ) : null}
         </div>
       </div>
 

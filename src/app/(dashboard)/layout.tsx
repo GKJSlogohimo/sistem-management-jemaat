@@ -1,40 +1,39 @@
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 
-import { LogoutButton } from "@/features/auth/components/logout-button";
-import { auth } from "@/lib/auth";
+import { AppSidebar } from "@/components/layout/app-sidebar";
+import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { requireActivePageProfile } from "@/lib/auth/require-page-profile";
 
-type DashboardLayoutProps = Readonly<{
+type DashboardLayoutProps = {
   children: ReactNode;
-}>;
+};
 
 export default async function DashboardLayout({ children }: DashboardLayoutProps) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  if (!session) {
-    redirect("/login");
-  }
+  const actor = await requireActivePageProfile();
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
-          <div>
-            <p className="font-semibold text-slate-900">Sistem Manajemen Jemaat</p>
+    <SidebarProvider>
+      <AppSidebar
+        user={{
+          name: actor.session.user.name ?? "Pengguna",
 
-            <p className="text-xs text-slate-500">
-              {session.user.name} · {session.user.email}
-            </p>
-          </div>
+          email: actor.session.user.email ?? null,
 
-          <LogoutButton />
-        </div>
-      </header>
+          peran: actor.profile.peran,
+        }}
+      />
 
-      <main className="mx-auto max-w-7xl p-4 md:p-6">{children}</main>
-    </div>
+      <SidebarInset className="md:ml-3">
+        <header className="sticky top-0 z-40 flex h-14 shrink-0 items-center gap-3 border-b bg-background/95 px-4 backdrop-blur md:px-6">
+          <SidebarTrigger className="-ml-1" />
+
+          <div className="h-4 w-px bg-border" />
+
+          <p className="truncate text-sm font-medium">Sistem Manajemen Jemaat</p>
+        </header>
+
+        <main className="min-w-0 flex-1 px-4 py-6 md:px-6 lg:px-8">{children}</main>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

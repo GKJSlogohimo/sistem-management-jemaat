@@ -3,6 +3,12 @@ import { Suspense } from "react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { UnitGerejaTable } from "@/features/unit-gereja/components/unit-gereja-table";
+import {
+  hasAnyRole,
+  UNIT_GEREJA_READ_ROLES,
+  UNIT_GEREJA_WRITE_ROLES,
+} from "@/lib/auth/access-roles";
+import { requirePageRoles } from "@/lib/auth/require-page-role";
 
 export const metadata: Metadata = {
   title: "Unit Gereja | Sistem Manajemen Jemaat",
@@ -21,7 +27,11 @@ function UnitGerejaTableFallback() {
   );
 }
 
-export default function UnitGerejaPage() {
+export default async function UnitGerejaPage() {
+  const actor = await requirePageRoles(UNIT_GEREJA_READ_ROLES);
+
+  const canManage = hasAnyRole(actor.profile.peran, UNIT_GEREJA_WRITE_ROLES);
+
   return (
     <div className="space-y-6">
       <div>
@@ -31,7 +41,7 @@ export default function UnitGerejaPage() {
       </div>
 
       <Suspense fallback={<UnitGerejaTableFallback />}>
-        <UnitGerejaTable />
+        <UnitGerejaTable canManage={canManage} />
       </Suspense>
     </div>
   );

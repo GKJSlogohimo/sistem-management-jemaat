@@ -18,15 +18,17 @@ import {
 import type { KeluargaListItem } from "../types";
 
 type KeluargaColumnsOptions = {
+  canManage: boolean;
   onEdit: (keluarga: KeluargaListItem) => void;
   onDelete: (keluarga: KeluargaListItem) => void;
 };
 
 export function getKeluargaColumns({
+  canManage,
   onEdit,
   onDelete,
 }: KeluargaColumnsOptions): ColumnDef<KeluargaListItem>[] {
-  return [
+  const columns: ColumnDef<KeluargaListItem>[] = [
     {
       accessorKey: "nomorKK",
 
@@ -84,8 +86,10 @@ export function getKeluargaColumns({
 
       cell: ({ row }) => <Badge variant="secondary">{row.original.jumlahAnggota}</Badge>,
     },
+  ];
 
-    {
+  if (canManage) {
+    columns.push({
       id: "actions",
       enableSorting: false,
       enableHiding: false,
@@ -123,6 +127,8 @@ export function getKeluargaColumns({
           </div>
         );
       },
-    },
-  ];
+    });
+  }
+
+  return columns;
 }

@@ -37,7 +37,10 @@ function isSortField(value: string): value is SortField {
   return allowedSortFields.includes(value as SortField);
 }
 
-export function KeluargaTable() {
+type KeluargaTableProps = {
+  canManage: boolean;
+};
+export function KeluargaTable({ canManage }: KeluargaTableProps) {
   const { search, debouncedSearch, pagination, setSearch, resetSearch, onPaginationChange } =
     useDataTableQueryParams();
 
@@ -83,6 +86,7 @@ export function KeluargaTable() {
   const columns = useMemo(
     () =>
       getKeluargaColumns({
+        canManage,
         onEdit: (keluarga) => {
           setSelectedKeluarga(keluarga);
           setFormOpen(true);
@@ -93,7 +97,7 @@ export function KeluargaTable() {
           setDeleteOpen(true);
         },
       }),
-    [],
+    [canManage],
   );
 
   const handleSortingChange: OnChangeFn<SortingState> = (updater) => {
@@ -192,16 +196,18 @@ export function KeluargaTable() {
               </Select>
             </div>
 
-            <Button
-              type="button"
-              onClick={() => {
-                setSelectedKeluarga(null);
-                setFormOpen(true);
-              }}
-            >
-              <Plus />
-              Tambah Keluarga
-            </Button>
+            {canManage ? (
+              <Button
+                type="button"
+                onClick={() => {
+                  setSelectedKeluarga(null);
+                  setFormOpen(true);
+                }}
+              >
+                <Plus />
+                Tambah Keluarga
+              </Button>
+            ) : null}
           </div>
         )}
       />

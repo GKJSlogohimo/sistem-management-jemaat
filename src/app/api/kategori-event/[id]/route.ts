@@ -7,10 +7,10 @@ import {
   getKategoriEventById,
   updateKategoriEvent,
 } from "@/features/kategori-event/server/kategori-event.service";
-import { PeranPengguna } from "@/generated/prisma/client";
 import { apiError, apiSuccess, apiValidationError } from "@/lib/api/api-response";
 import { handleApiError } from "@/lib/api/handle-api-error";
-import { requireActiveProfile, requireRoles } from "@/lib/auth/require-profile";
+import { KATEGORI_EVENT_READ_ROLES, KATEGORI_EVENT_WRITE_ROLES } from "@/lib/auth/access-roles";
+import { requireApiRoles } from "@/lib/auth/require-api-role";
 
 type KategoriEventRouteProps = {
   params: Promise<{
@@ -20,7 +20,7 @@ type KategoriEventRouteProps = {
 
 export async function GET(request: Request, { params }: KategoriEventRouteProps) {
   try {
-    await requireActiveProfile(request.headers);
+    await requireApiRoles(request.headers, KATEGORI_EVENT_READ_ROLES);
 
     const { id } = await params;
 
@@ -42,7 +42,7 @@ export async function GET(request: Request, { params }: KategoriEventRouteProps)
 
 export async function PATCH(request: Request, { params }: KategoriEventRouteProps) {
   try {
-    await requireRoles(request.headers, [PeranPengguna.SUPER_ADMIN]);
+    await requireApiRoles(request.headers, KATEGORI_EVENT_WRITE_ROLES);
 
     const { id } = await params;
 
@@ -74,7 +74,7 @@ export async function PATCH(request: Request, { params }: KategoriEventRouteProp
 
 export async function DELETE(request: Request, { params }: KategoriEventRouteProps) {
   try {
-    await requireRoles(request.headers, [PeranPengguna.SUPER_ADMIN]);
+    await requireApiRoles(request.headers, KATEGORI_EVENT_WRITE_ROLES);
 
     const { id } = await params;
 

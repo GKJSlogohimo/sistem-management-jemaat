@@ -19,12 +19,17 @@ import { jenisKelaminLabels, statusJemaatLabels } from "../constants";
 import type { JemaatListItem } from "../types";
 
 type Options = {
+  canManage: boolean;
   onEdit: (jemaat: JemaatListItem) => void;
   onDelete: (jemaat: JemaatListItem) => void;
 };
 
-export function getJemaatColumns({ onEdit, onDelete }: Options): ColumnDef<JemaatListItem>[] {
-  return [
+export function getJemaatColumns({
+  canManage,
+  onEdit,
+  onDelete,
+}: Options): ColumnDef<JemaatListItem>[] {
+  const columns: ColumnDef<JemaatListItem>[] = [
     {
       accessorKey: "nomorIndukGereja",
       header: ({ column }) => <DataTableColumnHeader column={column} title="No. induk" />,
@@ -76,7 +81,10 @@ export function getJemaatColumns({ onEdit, onDelete }: Options): ColumnDef<Jemaa
         </Badge>
       ),
     },
-    {
+  ];
+
+  if (canManage) {
+    columns.push({
       id: "actions",
       enableSorting: false,
       cell: ({ row }) => (
@@ -106,6 +114,7 @@ export function getJemaatColumns({ onEdit, onDelete }: Options): ColumnDef<Jemaa
           </DropdownMenu>
         </div>
       ),
-    },
-  ];
+    });
+  }
+  return columns;
 }

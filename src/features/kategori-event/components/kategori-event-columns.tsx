@@ -19,16 +19,17 @@ import { getKategoriEventIcon } from "../constants";
 import type { KategoriEventListItem } from "../types";
 
 type KategoriEventColumnsOptions = {
+  canManage: boolean;
   onEdit: (kategori: KategoriEventListItem) => void;
-
   onDelete: (kategori: KategoriEventListItem) => void;
 };
 
 export function getKategoriEventColumns({
+  canManage,
   onEdit,
   onDelete,
 }: KategoriEventColumnsOptions): ColumnDef<KategoriEventListItem>[] {
-  return [
+  const columns: ColumnDef<KategoriEventListItem>[] = [
     {
       accessorKey: "nama",
 
@@ -96,8 +97,10 @@ export function getKategoriEventColumns({
         </Badge>
       ),
     },
+  ];
 
-    {
+  if (canManage) {
+    columns.push({
       id: "actions",
       enableSorting: false,
       enableHiding: false,
@@ -135,6 +138,7 @@ export function getKategoriEventColumns({
           </div>
         );
       },
-    },
-  ];
+    });
+  }
+  return columns;
 }

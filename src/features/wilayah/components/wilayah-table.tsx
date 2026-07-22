@@ -30,7 +30,11 @@ function isSortField(value: string): value is SortField {
   return allowedSortFields.includes(value as SortField);
 }
 
-export function WilayahTable() {
+type WilayahTableProps = {
+  canManage: boolean;
+};
+
+export function WilayahTable({ canManage }: WilayahTableProps) {
   const { search, debouncedSearch, pagination, setSearch, resetSearch, onPaginationChange } =
     useDataTableQueryParams();
 
@@ -76,6 +80,7 @@ export function WilayahTable() {
   const columns = useMemo(
     () =>
       getWilayahColumns({
+        canManage,
         onEdit: (wilayah) => {
           setSelectedWilayah(wilayah);
           setFormOpen(true);
@@ -86,7 +91,7 @@ export function WilayahTable() {
           setDeleteOpen(true);
         },
       }),
-    [],
+    [canManage],
   );
 
   const handleSortingChange: OnChangeFn<SortingState> = (updater) => {
@@ -189,16 +194,18 @@ export function WilayahTable() {
               </Select>
             </div>
 
-            <Button
-              type="button"
-              onClick={() => {
-                setSelectedWilayah(null);
-                setFormOpen(true);
-              }}
-            >
-              <Plus />
-              Tambah Wilayah
-            </Button>
+            {canManage ? (
+              <Button
+                type="button"
+                onClick={() => {
+                  setSelectedWilayah(null);
+                  setFormOpen(true);
+                }}
+              >
+                <Plus />
+                Tambah Wilayah
+              </Button>
+            ) : null}
           </div>
         )}
       />

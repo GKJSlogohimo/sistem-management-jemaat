@@ -7,11 +7,11 @@ import {
   getUnitGerejaById,
   updateUnitGereja,
 } from "@/features/unit-gereja/server/unit-gereja.service";
-import { PeranPengguna } from "@/generated/prisma/enums";
 import { apiSuccess, apiValidationError } from "@/lib/api/api-response";
 import { apiError } from "@/lib/api/api-response";
 import { handleApiError } from "@/lib/api/handle-api-error";
-import { requireActiveProfile, requireRoles } from "@/lib/auth/require-profile";
+import { UNIT_GEREJA_READ_ROLES, UNIT_GEREJA_WRITE_ROLES } from "@/lib/auth/access-roles";
+import { requireApiRoles } from "@/lib/auth/require-api-role";
 
 type UnitGerejaRouteProps = {
   params: Promise<{
@@ -21,7 +21,7 @@ type UnitGerejaRouteProps = {
 
 export async function GET(request: Request, { params }: UnitGerejaRouteProps) {
   try {
-    await requireActiveProfile(request.headers);
+    await requireApiRoles(request.headers, UNIT_GEREJA_READ_ROLES);
 
     const { id } = await params;
     const parsedId = unitGerejaIdSchema.safeParse(id);
@@ -42,7 +42,7 @@ export async function GET(request: Request, { params }: UnitGerejaRouteProps) {
 
 export async function PATCH(request: Request, { params }: UnitGerejaRouteProps) {
   try {
-    await requireRoles(request.headers, [PeranPengguna.SUPER_ADMIN]);
+    await requireApiRoles(request.headers, UNIT_GEREJA_WRITE_ROLES);
 
     const { id } = await params;
     const parsedId = unitGerejaIdSchema.safeParse(id);
@@ -72,7 +72,7 @@ export async function PATCH(request: Request, { params }: UnitGerejaRouteProps) 
 
 export async function DELETE(request: Request, { params }: UnitGerejaRouteProps) {
   try {
-    await requireRoles(request.headers, [PeranPengguna.SUPER_ADMIN]);
+    await requireApiRoles(request.headers, UNIT_GEREJA_WRITE_ROLES);
 
     const { id } = await params;
     const parsedId = unitGerejaIdSchema.safeParse(id);

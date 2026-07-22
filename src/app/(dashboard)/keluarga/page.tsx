@@ -3,6 +3,8 @@ import { Suspense } from "react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { KeluargaTable } from "@/features/keluarga/components/keluarga-table";
+import { hasAnyRole, KELUARGA_READ_ROLES, KELUARGA_WRITE_ROLES } from "@/lib/auth/access-roles";
+import { requirePageRoles } from "@/lib/auth/require-page-role";
 
 export const metadata: Metadata = {
   title: "Keluarga | Sistem Manajemen Jemaat",
@@ -25,7 +27,10 @@ function KeluargaTableFallback() {
   );
 }
 
-export default function KeluargaPage() {
+export default async function KeluargaPage() {
+  const actor = await requirePageRoles(KELUARGA_READ_ROLES);
+
+  const canManage = hasAnyRole(actor.profile.peran, KELUARGA_WRITE_ROLES);
   return (
     <div className="space-y-6">
       <div>
@@ -37,7 +42,7 @@ export default function KeluargaPage() {
       </div>
 
       <Suspense fallback={<KeluargaTableFallback />}>
-        <KeluargaTable />
+        <KeluargaTable canManage={canManage} />
       </Suspense>
     </div>
   );

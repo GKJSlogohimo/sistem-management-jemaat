@@ -3,7 +3,8 @@ import { z } from "zod";
 import { getKeluargaOptions } from "@/features/keluarga/server/keluarga.service";
 import { apiSuccess, apiValidationError } from "@/lib/api/api-response";
 import { handleApiError } from "@/lib/api/handle-api-error";
-import { requireActiveProfile } from "@/lib/auth/require-profile";
+import { KELUARGA_READ_ROLES } from "@/lib/auth/access-roles";
+import { requireApiRoles } from "@/lib/auth/require-api-role";
 
 const querySchema = z.object({
   unitGerejaId: z.string().uuid().optional(),
@@ -11,7 +12,7 @@ const querySchema = z.object({
 
 export async function GET(request: Request) {
   try {
-    await requireActiveProfile(request.headers);
+    await requireApiRoles(request.headers, KELUARGA_READ_ROLES);
 
     const searchParams = Object.fromEntries(new URL(request.url).searchParams.entries());
 

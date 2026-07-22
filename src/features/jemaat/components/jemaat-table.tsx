@@ -24,7 +24,11 @@ import { DeleteJemaatDialog } from "./delete-jemaat-dialog";
 import { getJemaatColumns } from "./jemaat-columns";
 import { JemaatFormDialog } from "./jemaat-form-dialog";
 
-export function JemaatTable() {
+type JemaatTableProps = {
+  canManage: boolean;
+};
+
+export function JemaatTable({ canManage }: JemaatTableProps) {
   const { search, debouncedSearch, pagination, setSearch, resetSearch, onPaginationChange } =
     useDataTableQueryParams();
 
@@ -71,6 +75,7 @@ export function JemaatTable() {
   const columns = useMemo(
     () =>
       getJemaatColumns({
+        canManage,
         onEdit: (jemaat) => {
           setSelected(jemaat);
           setFormOpen(true);
@@ -80,7 +85,7 @@ export function JemaatTable() {
           setDeleteOpen(true);
         },
       }),
-    [],
+    [canManage],
   );
 
   const changeSorting: OnChangeFn<SortingState> = (updater) => {
@@ -190,16 +195,18 @@ export function JemaatTable() {
               </Select>
             </div>
 
-            <Button
-              type="button"
-              onClick={() => {
-                setSelected(null);
-                setFormOpen(true);
-              }}
-            >
-              <Plus />
-              Tambah Jemaat
-            </Button>
+            {canManage ? (
+              <Button
+                type="button"
+                onClick={() => {
+                  setSelected(null);
+                  setFormOpen(true);
+                }}
+              >
+                <Plus />
+                Tambah Jemaat
+              </Button>
+            ) : null}
           </div>
         )}
       />

@@ -47,7 +47,11 @@ function isStatusFilter(value: string): value is StatusFilter {
   return statusValues.includes(value as StatusFilter);
 }
 
-export function PenggunaTable() {
+type PenggunaWorkspaceProps = {
+  canManage: boolean;
+};
+
+export function PenggunaTable({ canManage }: PenggunaWorkspaceProps) {
   const { search, debouncedSearch, pagination, setSearch, resetSearch, onPaginationChange } =
     useDataTableQueryParams();
 
@@ -309,17 +313,19 @@ export function PenggunaTable() {
               ) : null}
             </div>
 
-            <Button
-              type="button"
-              onClick={() => {
-                setSelectedPengguna(null);
+            {canManage ? (
+              <Button
+                type="button"
+                onClick={() => {
+                  setSelectedPengguna(null);
 
-                setFormOpen(true);
-              }}
-            >
-              <Plus />
-              Tambah Pengguna
-            </Button>
+                  setFormOpen(true);
+                }}
+              >
+                <Plus />
+                Tambah Pengguna
+              </Button>
+            ) : null}
           </div>
         )}
       />

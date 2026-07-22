@@ -4,10 +4,10 @@ import {
   getKeluargaById,
   updateKeluarga,
 } from "@/features/keluarga/server/keluarga.service";
-import { PeranPengguna } from "@/generated/prisma/client";
 import { apiError, apiSuccess, apiValidationError } from "@/lib/api/api-response";
 import { handleApiError } from "@/lib/api/handle-api-error";
-import { requireActiveProfile, requireRoles } from "@/lib/auth/require-profile";
+import { KELUARGA_READ_ROLES, KELUARGA_WRITE_ROLES } from "@/lib/auth/access-roles";
+import { requireApiRoles } from "@/lib/auth/require-api-role";
 
 type KeluargaRouteProps = {
   params: Promise<{
@@ -17,7 +17,7 @@ type KeluargaRouteProps = {
 
 export async function GET(request: Request, { params }: KeluargaRouteProps) {
   try {
-    await requireActiveProfile(request.headers);
+    await requireApiRoles(request.headers, KELUARGA_READ_ROLES);
 
     const { id } = await params;
     const parsedId = keluargaIdSchema.safeParse(id);
@@ -38,7 +38,7 @@ export async function GET(request: Request, { params }: KeluargaRouteProps) {
 
 export async function PATCH(request: Request, { params }: KeluargaRouteProps) {
   try {
-    await requireRoles(request.headers, [PeranPengguna.SUPER_ADMIN]);
+    await requireApiRoles(request.headers, KELUARGA_WRITE_ROLES);
 
     const { id } = await params;
     const parsedId = keluargaIdSchema.safeParse(id);
@@ -69,7 +69,7 @@ export async function PATCH(request: Request, { params }: KeluargaRouteProps) {
 
 export async function DELETE(request: Request, { params }: KeluargaRouteProps) {
   try {
-    await requireRoles(request.headers, [PeranPengguna.SUPER_ADMIN]);
+    await requireApiRoles(request.headers, KELUARGA_WRITE_ROLES);
 
     const { id } = await params;
     const parsedId = keluargaIdSchema.safeParse(id);

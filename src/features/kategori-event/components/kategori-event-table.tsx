@@ -34,7 +34,10 @@ function isSortField(value: string): value is SortField {
   return allowedSortFields.includes(value as SortField);
 }
 
-export function KategoriEventTable() {
+type KategoriEventTableProps = {
+  canManage: boolean;
+};
+export function KategoriEventTable({ canManage }: KategoriEventTableProps) {
   const { search, debouncedSearch, pagination, setSearch, resetSearch, onPaginationChange } =
     useDataTableQueryParams();
 
@@ -82,6 +85,7 @@ export function KategoriEventTable() {
   const columns = useMemo(
     () =>
       getKategoriEventColumns({
+        canManage,
         onEdit: (kategori) => {
           setSelectedKategori(kategori);
 
@@ -94,7 +98,7 @@ export function KategoriEventTable() {
           setDeleteOpen(true);
         },
       }),
-    [],
+    [canManage],
   );
 
   const paginationMeta = query.data?.meta?.pagination;
@@ -225,17 +229,19 @@ export function KategoriEventTable() {
               ) : null}
             </div>
 
-            <Button
-              type="button"
-              onClick={() => {
-                setSelectedKategori(null);
+            {canManage ? (
+              <Button
+                type="button"
+                onClick={() => {
+                  setSelectedKategori(null);
 
-                setFormOpen(true);
-              }}
-            >
-              <Plus />
-              Tambah Kategori
-            </Button>
+                  setFormOpen(true);
+                }}
+              >
+                <Plus />
+                Tambah Kategori
+              </Button>
+            ) : null}
           </div>
         )}
       />

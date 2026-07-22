@@ -18,15 +18,17 @@ import {
 import type { WilayahListItem } from "../types";
 
 type WilayahColumnsOptions = {
+  canManage: boolean;
   onEdit: (wilayah: WilayahListItem) => void;
   onDelete: (wilayah: WilayahListItem) => void;
 };
 
 export function getWilayahColumns({
+  canManage,
   onEdit,
   onDelete,
 }: WilayahColumnsOptions): ColumnDef<WilayahListItem>[] {
-  return [
+  const column: ColumnDef<WilayahListItem>[] = [
     {
       accessorKey: "nama",
 
@@ -68,8 +70,10 @@ export function getWilayahColumns({
 
       cell: ({ row }) => <Badge variant="secondary">{row.original.jumlahJemaat}</Badge>,
     },
+  ];
 
-    {
+  if (canManage) {
+    column.push({
       id: "actions",
       enableSorting: false,
       enableHiding: false,
@@ -106,6 +110,8 @@ export function getWilayahColumns({
           </div>
         );
       },
-    },
-  ];
+    });
+  }
+
+  return column;
 }

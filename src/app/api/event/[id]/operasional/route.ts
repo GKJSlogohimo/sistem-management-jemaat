@@ -1,5 +1,6 @@
 import { publishEventChanged, publishQueueCalled } from "@/app/api/realtime/ably-server";
 import { eventIdSchema } from "@/features/event/schemas/event.schema";
+import { getOperasionalActionRoles } from "@/features/operasional-event/permissions";
 import {
   type OperasionalEventAction,
   operasionalEventActionSchema,
@@ -9,37 +10,16 @@ import {
   executeOperasionalEventAction,
   getOperasionalEventState,
 } from "@/features/operasional-event/server/operasional-event.service";
-import { PeranPengguna } from "@/generated/prisma/client";
 import { apiError, apiSuccess, apiValidationError } from "@/lib/api/api-response";
-import { AppError } from "@/lib/api/app-error";
 import { handleApiError } from "@/lib/api/handle-api-error";
+import { OPERASIONAL_EVENT_READ_ROLES } from "@/lib/auth/access-roles";
+import { assertHasAnyRole } from "@/lib/auth/assert-role";
 import { requireActiveProfile } from "@/lib/auth/require-profile";
 
 type RouteProps = {
   params: Promise<{
     id: string;
   }>;
-};
-
-const managerRoles = [
-  PeranPengguna.SUPER_ADMIN,
-  PeranPengguna.ADMIN_INDUK,
-  PeranPengguna.ADMIN_SUB_INDUK,
-  PeranPengguna.PANITIA_EVENT,
-];
-
-const rolesByAction: Record<OperasionalEventAction, PeranPengguna[]> = {
-  CHECK_IN: [...managerRoles, PeranPengguna.PETUGAS_REGISTRASI, PeranPengguna.PETUGAS_ANTREAN],
-
-  PANGGIL: [...managerRoles, PeranPengguna.PETUGAS_ANTREAN],
-
-  PANGGIL_BERIKUTNYA: [...managerRoles, PeranPengguna.PETUGAS_ANTREAN],
-
-  KEMBALIKAN: [...managerRoles, PeranPengguna.PETUGAS_ANTREAN],
-
-  SELESAI: [...managerRoles, PeranPengguna.PETUGAS_ANTREAN, PeranPengguna.PELAYAN],
-
-  BATAL: [...managerRoles, PeranPengguna.PETUGAS_REGISTRASI, PeranPengguna.PETUGAS_ANTREAN],
 };
 
 function getActor(result: Awaited<ReturnType<typeof requireActiveProfile>>) {
@@ -55,7 +35,7 @@ function getActor(result: Awaited<ReturnType<typeof requireActiveProfile>>) {
 export async function GET(request: Request, { params }: RouteProps) {
   try {
     const actor = await requireActiveProfile(request.headers);
-
+    assertHasAnyRole(actor.profile.peran, OPERASIONAL_EVENT_READ_ROLES);
     const { id } = await params;
 
     const parsedId = eventIdSchema.safeParse(id);
@@ -108,14 +88,7 @@ export async function POST(request: Request, { params }: RouteProps) {
       return apiValidationError(parsed.error);
     }
 
-    const allowedRoles = rolesByAction[parsed.data.action];
-
-    if (!allowedRoles.includes(actor.profile.peran)) {
-      throw new AppError("Anda tidak memiliki izin untuk melakukan tindakan ini.", {
-        status: 403,
-        code: "FORBIDDEN",
-      });
-    }
+    assertHasAnyRole(actor.profile.peran, getOperasionalActionRoles(parsed.data.action));
 
     const result = await executeOperasionalEventAction(getActor(actor), parsedId.data, parsed.data);
 

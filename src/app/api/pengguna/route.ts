@@ -3,14 +3,14 @@ import {
   penggunaListQuerySchema,
 } from "@/features/pengguna/schemas/pengguna.schema";
 import { createPengguna, getPenggunaList } from "@/features/pengguna/server/pengguna.service";
-import { PeranPengguna } from "@/generated/prisma/client";
 import { apiPaginated, apiSuccess, apiValidationError } from "@/lib/api/api-response";
 import { handleApiError } from "@/lib/api/handle-api-error";
-import { requireRoles } from "@/lib/auth/require-profile";
+import { PENGGUNA_READ_ROLES, PENGGUNA_WRITE_ROLES } from "@/lib/auth/access-roles";
+import { requireApiRoles } from "@/lib/auth/require-api-role";
 
 export async function GET(request: Request) {
   try {
-    await requireRoles(request.headers, [PeranPengguna.SUPER_ADMIN]);
+    const actor = await requireApiRoles(request.headers, PENGGUNA_READ_ROLES);
 
     const query = Object.fromEntries(new URL(request.url).searchParams.entries());
 
@@ -20,7 +20,16 @@ export async function GET(request: Request) {
       return apiValidationError(parsed.error);
     }
 
-    const result = await getPenggunaList(parsed.data);
+    const result = await getPenggunaList(
+      {
+        userId: actor.session.user.id,
+
+        peran: actor.profile.peran,
+
+        unitGerejaId: actor.profile.unitGerejaId,
+      },
+      parsed.data,
+    );
 
     return apiPaginated(result.data, result.pagination);
   } catch (error) {
@@ -30,7 +39,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    await requireRoles(request.headers, [PeranPengguna.SUPER_ADMIN]);
+    const actor = await requireApiRoles(request.headers, PENGGUNA_WRITE_ROLES);
 
     const body = await request.json().catch(() => null);
 
@@ -40,7 +49,16 @@ export async function POST(request: Request) {
       return apiValidationError(parsed.error);
     }
 
-    const pengguna = await createPengguna(parsed.data);
+    const pengguna = await createPengguna(
+      {
+        userId: actor.session.user.id,
+
+        peran: actor.profile.peran,
+
+        unitGerejaId: actor.profile.unitGerejaId,
+      },
+      parsed.data,
+    );
 
     return apiSuccess(pengguna, {
       status: 201,
