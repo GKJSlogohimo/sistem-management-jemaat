@@ -47,6 +47,8 @@ import {
 } from "@/lib/auth/access-roles";
 import { authClient } from "@/lib/auth-client";
 
+import { SidebarThemeMenu } from "./sidebar-theme-menu";
+
 type SidebarUser = {
   name: string;
   email: string | null;
@@ -316,6 +318,10 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
                 ) : null}
               </div>
             </div>
+          </SidebarMenuItem>
+
+          <SidebarMenuItem>
+            <SidebarThemeMenu />
           </SidebarMenuItem>
 
           <SidebarMenuItem>
