@@ -3,15 +3,33 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 import { nextCookies } from "better-auth/next-js";
 import { after } from "next/server";
 
-import { env } from "@/lib/env";
 import prisma from "@/lib/prisma";
 
 import { sendPasswordResetEmail } from "./email";
 
+const betterAuthUrl = process.env.BETTER_AUTH_URL;
+
+if (!betterAuthUrl) {
+  throw new Error("BETTER_AUTH_URL belum dikonfigurasi.");
+}
+
+const betterAuthSecret = process.env.BETTER_AUTH_SECRET;
+
+if (!betterAuthSecret) {
+  throw new Error("BETTER_AUTH_SECRET belum dikonfigurasi.");
+}
+
+const productionHost = new URL(betterAuthUrl).host;
+
 export const auth = betterAuth({
   appName: "Sistem Manajemen Jemaat",
 
-  baseURL: env.BETTER_AUTH_URL,
+  baseURL: {
+    allowedHosts: ["localhost:3000", productionHost, "*.vercel.app"],
+
+    protocol: "auto",
+    fallback: betterAuthUrl,
+  },
 
   database: prismaAdapter(prisma, {
     provider: "postgresql",
