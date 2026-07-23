@@ -35,6 +35,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { PeranPengguna } from "@/generated/prisma/enums";
 import {
@@ -238,6 +239,8 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
 
   const router = useRouter();
 
+  const { isMobile, setOpenMobile } = useSidebar();
+
   const [isSigningOut, setIsSigningOut] = useState(false);
 
   const visibleGroups = navigationGroups
@@ -271,13 +274,19 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
     }
   }
 
+  function handleNavigationClick() {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  }
+
   return (
     <Sidebar variant="inset" collapsible="icon" {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild tooltip="Sistem Manajemen Jemaat">
-              <Link href="/dashboard">
+              <Link href="/dashboard" onClick={handleNavigationClick}>
                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
                   <Church className="size-4" />
                 </div>
@@ -310,7 +319,11 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
                   return (
                     <SidebarMenuItem key={item.href}>
                       <SidebarMenuButton asChild isActive={active} tooltip={item.title}>
-                        <Link href={item.href} aria-current={active ? "page" : undefined}>
+                        <Link
+                          href={item.href}
+                          aria-current={active ? "page" : undefined}
+                          onClick={handleNavigationClick}
+                        >
                           <Icon />
 
                           <span>{item.title}</span>
