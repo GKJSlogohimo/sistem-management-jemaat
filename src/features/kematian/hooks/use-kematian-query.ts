@@ -11,6 +11,10 @@ export function useKematianQuery(params: KematianListParams) {
     queryKey: kematianKeys.list(params),
     queryFn: () => getKematianList(params),
     placeholderData: keepPreviousData,
+
+    staleTime: 30_000,
+    gcTime: 5 * 60_000,
+    refetchOnWindowFocus: false,
   });
 }
 

@@ -11,6 +11,10 @@ export function useEventQuery(params: EventListParams) {
     queryFn: () => getEventList(params),
 
     placeholderData: keepPreviousData,
+
+    staleTime: 30_000,
+    gcTime: 5 * 60_000,
+    refetchOnWindowFocus: false,
   });
 }
 

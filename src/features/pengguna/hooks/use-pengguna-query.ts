@@ -9,6 +9,10 @@ export function usePenggunaQuery(params: PenggunaListParams) {
     queryKey: penggunaKeys.list(params),
     queryFn: () => getPenggunaList(params),
     placeholderData: keepPreviousData,
+
+    staleTime: 30_000,
+    gcTime: 5 * 60_000,
+    refetchOnWindowFocus: false,
   });
 }
 

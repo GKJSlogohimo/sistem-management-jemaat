@@ -15,6 +15,10 @@ export function usePernikahanQuery(params: PernikahanListParams) {
     queryKey: pernikahanKeys.list(params),
     queryFn: () => getPernikahanList(params),
     placeholderData: keepPreviousData,
+
+    staleTime: 30_000,
+    gcTime: 5 * 60_000,
+    refetchOnWindowFocus: false,
   });
 }
 

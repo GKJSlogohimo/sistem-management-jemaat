@@ -9,6 +9,10 @@ export function useWilayahQuery(params: WilayahListParams) {
     queryKey: wilayahKeys.list(params),
     queryFn: () => getWilayahList(params),
     placeholderData: keepPreviousData,
+
+    staleTime: 30_000,
+    gcTime: 5 * 60_000,
+    refetchOnWindowFocus: false,
   });
 }
 

@@ -22,6 +22,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 import { useDashboardSummaryQuery } from "../hooks/use-dashboard-query";
 import type { DashboardActivityType, DashboardRecentActivity } from "../types";
+import type { DashboardSummary as DashboardSummaryData } from "../types";
 
 const numberFormatter = new Intl.NumberFormat("id-ID");
 
@@ -144,7 +145,11 @@ function RecentActivity({ activity }: { activity: DashboardRecentActivity }) {
   );
 }
 
-export function DashboardSummary() {
+type DashboardSummaryProps = {
+  summary: DashboardSummaryData;
+};
+
+export function DashboardSummary({ summary }: DashboardSummaryProps) {
   const query = useDashboardSummaryQuery();
 
   if (query.isPending) {
@@ -174,8 +179,6 @@ export function DashboardSummary() {
       </Card>
     );
   }
-
-  const summary = query.data.data;
 
   const totalGender = summary.gender.lakiLaki + summary.gender.perempuan;
 

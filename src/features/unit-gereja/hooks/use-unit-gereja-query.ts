@@ -13,6 +13,10 @@ export function useUnitGerejaQuery(params: UnitGerejaListParams) {
     queryKey: unitGerejaKeys.list(params),
     queryFn: () => getUnitGerejaList(params),
     placeholderData: keepPreviousData,
+
+    staleTime: 30_000,
+    gcTime: 5 * 60_000,
+    refetchOnWindowFocus: false,
   });
 }
 
@@ -21,7 +25,9 @@ export function useUnitGerejaOptionsQuery(enabled = true) {
     queryKey: unitGerejaKeys.options(),
     queryFn: getUnitGerejaOptions,
     enabled,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 5 * 60_000,
+    gcTime: 15 * 60_000,
+    refetchOnWindowFocus: false,
   });
 }
 
@@ -29,6 +35,8 @@ export function useActiveUnitGerejaOptionsQuery() {
   return useQuery({
     queryKey: unitGerejaKeys.activeOptions(),
     queryFn: getActiveUnitGerejaOptions,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 5 * 60_000,
+    gcTime: 15 * 60_000,
+    refetchOnWindowFocus: false,
   });
 }
