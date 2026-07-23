@@ -145,7 +145,7 @@ cd sistem-manajemen-jemaat
 Install dependency:
 
 ```bash
-pnpm install
+pnpm instal
 ```
 
 Salin environment example:
