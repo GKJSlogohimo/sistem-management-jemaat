@@ -1,4 +1,4 @@
-import type { PeranPengguna } from "@/generated/prisma/client";
+import type { PeranPengguna } from "@/generated/prisma/enums";
 import { AppError } from "@/lib/api/app-error";
 
 import type { AllowedRoles } from "./access-roles";

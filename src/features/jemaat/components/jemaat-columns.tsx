@@ -92,54 +92,55 @@ export function getJemaatColumns({
     columns.push({
       id: "actions",
       enableSorting: false,
-      cell: ({ row }) => (
-        <div className="flex justify-end">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button type="button" variant="ghost" size="icon">
-                <MoreHorizontal />
-                <span className="sr-only">Buka menu</span>
-              </Button>
-            </DropdownMenuTrigger>
+      cell: ({ row }) => {
+        const jemaat = row.original;
 
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                onClick={() => {
-                  onDetail(row.original);
-                }}
-              >
-                <Eye />
-                Detail
-              </DropdownMenuItem>
+        const isMeninggal =
+          jemaat.status === "TIDAK_AKTIF" && jemaat.alasanTidakAktif === "MENINGGAL";
 
-              {canManage ? (
-                <>
-                  <DropdownMenuSeparator />
+        return (
+          <div className="flex justify-end">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button type="button" variant="ghost" size="icon">
+                  <MoreHorizontal />
+                  <span className="sr-only">Buka menu</span>
+                </Button>
+              </DropdownMenuTrigger>
 
-                  <DropdownMenuItem
-                    onClick={() => {
-                      onEdit(row.original);
-                    }}
-                  >
-                    <Pencil />
-                    Edit
-                  </DropdownMenuItem>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  onClick={() => {
+                    onDetail(row.original);
+                  }}
+                >
+                  <Eye />
+                  Detail
+                </DropdownMenuItem>
 
-                  <DropdownMenuItem
-                    className="text-destructive focus:text-destructive"
-                    onClick={() => {
-                      onDelete(row.original);
-                    }}
-                  >
-                    <Trash2 />
-                    Hapus
-                  </DropdownMenuItem>
-                </>
-              ) : null}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      ),
+                {canManage && !isMeninggal ? (
+                  <>
+                    <DropdownMenuSeparator />
+
+                    <DropdownMenuItem onClick={() => onEdit(jemaat)}>
+                      <Pencil />
+                      Edit
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem
+                      className="text-destructive focus:text-destructive"
+                      onClick={() => onDelete(jemaat)}
+                    >
+                      <Trash2 />
+                      Hapus
+                    </DropdownMenuItem>
+                  </>
+                ) : null}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        );
+      },
     });
   }
   return columns;

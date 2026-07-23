@@ -29,6 +29,7 @@ export const config = {
     "/unit-gereja/:path*",
     "/wilayah/:path*",
     "/keluarga/:path*",
+    "/kematian/:path*",
     "/jemaat/:path*",
     "/pengguna/:path*",
     "/kategori-event/:path*",

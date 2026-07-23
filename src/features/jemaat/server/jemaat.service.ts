@@ -627,7 +627,7 @@ export async function updateJemaat(actor: AppActor, id: string, input: UpdateJem
       nik: true,
       status: true,
       unitGerejaId: true,
-
+      alasanTidakAktif: true,
       kematian: {
         select: {
           id: true,
@@ -672,6 +672,16 @@ export async function updateJemaat(actor: AppActor, id: string, input: UpdateJem
         code: "CONFLICT",
       },
     );
+  }
+
+  if (
+    current.status === StatusJemaat.TIDAK_AKTIF &&
+    current.alasanTidakAktif === AlasanTidakAktif.MENINGGAL
+  ) {
+    throw new AppError("Data Jemaat yang telah meninggal tidak dapat diubah.", {
+      status: 409,
+      code: "CONFLICT",
+    });
   }
 
   const allowNik = canReadNik(actor.peran);
@@ -754,6 +764,9 @@ export async function deleteJemaat(actor: AppActor, id: string) {
       id: true,
       unitGerejaId: true,
 
+      status: true,
+      alasanTidakAktif: true,
+
       _count: {
         select: {
           pesertaEvent: true,
@@ -783,6 +796,16 @@ export async function deleteJemaat(actor: AppActor, id: string) {
     throw new AppError("Data jemaat tidak ditemukan.", {
       status: 404,
       code: "NOT_FOUND",
+    });
+  }
+
+  if (
+    jemaat.status === StatusJemaat.TIDAK_AKTIF &&
+    jemaat.alasanTidakAktif === AlasanTidakAktif.MENINGGAL
+  ) {
+    throw new AppError("Data Jemaat yang telah meninggal tidak dapat dihapus.", {
+      status: 409,
+      code: "CONFLICT",
     });
   }
 
