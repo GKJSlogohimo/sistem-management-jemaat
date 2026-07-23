@@ -22,14 +22,16 @@ import type { JenisKelaminValue, StatusJemaatValue } from "../schemas/jemaat.sch
 import type { JemaatListItem } from "../types";
 import { DeleteJemaatDialog } from "./delete-jemaat-dialog";
 import { getJemaatColumns } from "./jemaat-columns";
+import { JemaatDetailDialog } from "./jemaat-detail-dialog";
 import { JemaatFormDialog } from "./jemaat-form-dialog";
 
 type JemaatTableProps = {
   canManage: boolean;
   canViewNik: boolean;
+  canViewNomorKK: boolean;
 };
 
-export function JemaatTable({ canManage, canViewNik }: JemaatTableProps) {
+export function JemaatTable({ canManage, canViewNik, canViewNomorKK }: JemaatTableProps) {
   const { search, debouncedSearch, pagination, setSearch, resetSearch, onPaginationChange } =
     useDataTableQueryParams();
 
@@ -47,6 +49,7 @@ export function JemaatTable({ canManage, canViewNik }: JemaatTableProps) {
   ]);
 
   const [formOpen, setFormOpen] = useState(false);
+  const [detailOpen, setDetailOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
   const [selected, setSelected] = useState<JemaatListItem | null>(null);
@@ -78,6 +81,10 @@ export function JemaatTable({ canManage, canViewNik }: JemaatTableProps) {
       getJemaatColumns({
         canManage,
         canViewNik,
+        onDetail: (jemaat) => {
+          setSelected(jemaat);
+          setDetailOpen(true);
+        },
         onEdit: (jemaat) => {
           setSelected(jemaat);
           setFormOpen(true);
@@ -211,6 +218,20 @@ export function JemaatTable({ canManage, canViewNik }: JemaatTableProps) {
             ) : null}
           </div>
         )}
+      />
+
+      <JemaatDetailDialog
+        open={detailOpen}
+        jemaat={selected}
+        canViewNik={canViewNik}
+        canViewNomorKK={canViewNomorKK}
+        onOpenChange={(open) => {
+          setDetailOpen(open);
+
+          if (!open) {
+            setSelected(null);
+          }
+        }}
       />
 
       <JemaatFormDialog

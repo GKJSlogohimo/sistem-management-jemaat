@@ -55,7 +55,12 @@ type BaptisanDetailDialogProps = {
 export function BaptisanDetailDialog({ open, onOpenChange, baptisan }: BaptisanDetailDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent
+        className="sm:max-w-2xl"
+        onOpenAutoFocus={(event) => {
+          event.preventDefault();
+        }}
+      >
         <DialogHeader>
           <DialogTitle>Detail Baptisan</DialogTitle>
 

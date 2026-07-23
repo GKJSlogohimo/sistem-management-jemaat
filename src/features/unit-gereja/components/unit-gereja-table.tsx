@@ -12,6 +12,7 @@ import { useUnitGerejaQuery } from "../hooks/use-unit-gereja-query";
 import type { UnitGerejaListItem } from "../types";
 import { DeleteUnitGerejaDialog } from "./delete-unit-gereja-dialog";
 import { getUnitGerejaColumns } from "./unit-gereja-columns";
+import { UnitGerejaDetailDialog } from "./unit-gereja-detail-dialog";
 import { UnitGerejaFormDialog } from "./unit-gereja-form-dialog";
 
 const allowedSortFields = ["kode", "nama", "jenis", "aktif", "createdAt"] as const;
@@ -38,7 +39,7 @@ export function UnitGerejaTable({ canManage }: UnitGerejaTableProps) {
   ]);
 
   const [formOpen, setFormOpen] = useState(false);
-
+  const [detailOpen, setDetailOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
   const [selectedUnit, setSelectedUnit] = useState<UnitGerejaListItem | null>(null);
@@ -61,6 +62,10 @@ export function UnitGerejaTable({ canManage }: UnitGerejaTableProps) {
     () =>
       getUnitGerejaColumns({
         canManage,
+        onDetail: (unitGereja) => {
+          setSelectedUnit(unitGereja);
+          setDetailOpen(true);
+        },
         onEdit: (unit) => {
           setSelectedUnit(unit);
           setFormOpen(true);
@@ -134,6 +139,18 @@ export function UnitGerejaTable({ canManage }: UnitGerejaTableProps) {
             ) : null}
           </div>
         )}
+      />
+
+      <UnitGerejaDetailDialog
+        open={detailOpen}
+        unitGereja={selectedUnit}
+        onOpenChange={(open) => {
+          setDetailOpen(open);
+
+          if (!open) {
+            setSelectedUnit(null);
+          }
+        }}
       />
 
       <UnitGerejaFormDialog

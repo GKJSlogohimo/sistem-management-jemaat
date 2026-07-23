@@ -47,7 +47,12 @@ export function PernikahanDetailDialog({
 }: PernikahanDetailDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+      <DialogContent
+        className="max-h-[90vh] overflow-y-auto sm:max-w-2xl"
+        onOpenAutoFocus={(event) => {
+          event.preventDefault();
+        }}
+      >
         <DialogHeader>
           <DialogTitle>Detail Pernikahan</DialogTitle>
           <DialogDescription>Informasi pencatatan pernikahan gerejawi.</DialogDescription>

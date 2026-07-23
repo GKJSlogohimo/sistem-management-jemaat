@@ -20,6 +20,7 @@ import { useUnitGerejaOptionsQuery, useWilayahQuery } from "../hooks/use-wilayah
 import type { WilayahListItem } from "../types";
 import { DeleteWilayahDialog } from "./delete-wilayah-dialog";
 import { getWilayahColumns } from "./wilayah-columns";
+import { WilayahDetailDialog } from "./wilayah-detail-dialog";
 import { WilayahFormDialog } from "./wilayah-form-dialog";
 
 const allowedSortFields = ["nama", "unitGereja", "createdAt", "updatedAt"] as const;
@@ -58,6 +59,8 @@ export function WilayahTable({ canManage }: WilayahTableProps) {
 
   const [deleteOpen, setDeleteOpen] = useState(false);
 
+  const [detailOpen, setDetailOpen] = useState(false);
+
   const [selectedWilayah, setSelectedWilayah] = useState<WilayahListItem | null>(null);
 
   const unitOptionsQuery = useUnitGerejaOptionsQuery();
@@ -81,6 +84,10 @@ export function WilayahTable({ canManage }: WilayahTableProps) {
     () =>
       getWilayahColumns({
         canManage,
+        onDetail: (wilayah) => {
+          setSelectedWilayah(wilayah);
+          setDetailOpen(true);
+        },
         onEdit: (wilayah) => {
           setSelectedWilayah(wilayah);
           setFormOpen(true);
@@ -208,6 +215,18 @@ export function WilayahTable({ canManage }: WilayahTableProps) {
             ) : null}
           </div>
         )}
+      />
+
+      <WilayahDetailDialog
+        open={detailOpen}
+        wilayah={selectedWilayah}
+        onOpenChange={(open) => {
+          setDetailOpen(open);
+
+          if (!open) {
+            setSelectedWilayah(null);
+          }
+        }}
       />
 
       <WilayahFormDialog

@@ -1,7 +1,7 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { Eye, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 
 import { DataTableColumnHeader } from "@/components/data-table";
 import { Badge } from "@/components/ui/badge";
@@ -10,7 +10,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -21,6 +20,7 @@ import type { JemaatListItem } from "../types";
 type Options = {
   canManage: boolean;
   canViewNik: boolean;
+  onDetail: (jemaat: JemaatListItem) => void;
   onEdit: (jemaat: JemaatListItem) => void;
   onDelete: (jemaat: JemaatListItem) => void;
 };
@@ -28,6 +28,7 @@ type Options = {
 export function getJemaatColumns({
   canManage,
   canViewNik,
+  onDetail,
   onEdit,
   onDelete,
 }: Options): ColumnDef<JemaatListItem>[] {
@@ -102,18 +103,39 @@ export function getJemaatColumns({
             </DropdownMenuTrigger>
 
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Tindakan</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-
-              <DropdownMenuItem onClick={() => onEdit(row.original)}>
-                <Pencil />
-                Edit
+              <DropdownMenuItem
+                onClick={() => {
+                  onDetail(row.original);
+                }}
+              >
+                <Eye />
+                Detail
               </DropdownMenuItem>
 
-              <DropdownMenuItem variant="destructive" onClick={() => onDelete(row.original)}>
-                <Trash2 />
-                Hapus
-              </DropdownMenuItem>
+              {canManage ? (
+                <>
+                  <DropdownMenuSeparator />
+
+                  <DropdownMenuItem
+                    onClick={() => {
+                      onEdit(row.original);
+                    }}
+                  >
+                    <Pencil />
+                    Edit
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem
+                    className="text-destructive focus:text-destructive"
+                    onClick={() => {
+                      onDelete(row.original);
+                    }}
+                  >
+                    <Trash2 />
+                    Hapus
+                  </DropdownMenuItem>
+                </>
+              ) : null}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

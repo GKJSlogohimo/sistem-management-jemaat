@@ -5,6 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { JemaatTable } from "@/features/jemaat/components/jemaat-table";
 import {
   canReadNik,
+  canReadNomorKK,
   hasAnyRole,
   JEMAAT_READ_ROLES,
   JEMAAT_WRITE_ROLES,
@@ -40,7 +41,11 @@ export default async function JemaatPage() {
       </div>
 
       <Suspense fallback={<TableFallback />}>
-        <JemaatTable canManage={canManage} canViewNik={canReadNik(actor.profile.peran)} />
+        <JemaatTable
+          canManage={canManage}
+          canViewNik={canReadNik(actor.profile.peran)}
+          canViewNomorKK={canReadNomorKK(actor.profile.peran)}
+        />
       </Suspense>
     </div>
   );

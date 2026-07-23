@@ -1,7 +1,7 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { Eye, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 
 import { DataTableColumnHeader } from "@/components/data-table";
 import { Badge } from "@/components/ui/badge";
@@ -10,7 +10,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -20,16 +19,18 @@ import type { UnitGerejaListItem } from "../types";
 
 type UnitGerejaColumnsOptions = {
   canManage: boolean;
+  onDetail: (unitGereja: UnitGerejaListItem) => void;
   onEdit: (unit: UnitGerejaListItem) => void;
   onDelete: (unit: UnitGerejaListItem) => void;
 };
 
 export function getUnitGerejaColumns({
   canManage,
+  onDetail,
   onEdit,
   onDelete,
 }: UnitGerejaColumnsOptions): ColumnDef<UnitGerejaListItem>[] {
-  const columns: ColumnDef<UnitGerejaListItem>[] = [
+  return [
     {
       accessorKey: "kode",
       header: ({ column }) => <DataTableColumnHeader column={column} title="Kode" />,
@@ -76,47 +77,62 @@ export function getUnitGerejaColumns({
         </Badge>
       ),
     },
-  ];
-
-  if (canManage) {
-    columns.push({
+    {
       id: "actions",
       enableSorting: false,
       enableHiding: false,
+
       cell: ({ row }) => {
-        const unit = row.original;
+        const unitGereja = row.original;
 
         return (
           <div className="flex justify-end">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button type="button" variant="ghost" size="icon">
+                <Button type="button" variant="ghost" size="icon" aria-label="Tindakan Unit Gereja">
                   <MoreHorizontal />
-                  <span className="sr-only">Buka menu</span>
                 </Button>
               </DropdownMenuTrigger>
 
               <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Tindakan</DropdownMenuLabel>
-
-                <DropdownMenuSeparator />
-
-                <DropdownMenuItem onClick={() => onEdit(unit)}>
-                  <Pencil />
-                  Edit
+                <DropdownMenuItem
+                  onClick={() => {
+                    onDetail(unitGereja);
+                  }}
+                >
+                  <Eye />
+                  Detail
                 </DropdownMenuItem>
 
-                <DropdownMenuItem variant="destructive" onClick={() => onDelete(unit)}>
-                  <Trash2 />
-                  Hapus
-                </DropdownMenuItem>
+                {canManage ? (
+                  <>
+                    <DropdownMenuSeparator />
+
+                    <DropdownMenuItem
+                      onClick={() => {
+                        onEdit(unitGereja);
+                      }}
+                    >
+                      <Pencil />
+                      Edit
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem
+                      className="text-destructive focus:text-destructive"
+                      onClick={() => {
+                        onDelete(unitGereja);
+                      }}
+                    >
+                      <Trash2 />
+                      Hapus
+                    </DropdownMenuItem>
+                  </>
+                ) : null}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
         );
       },
-    });
-  }
-
-  return columns;
+    },
+  ];
 }

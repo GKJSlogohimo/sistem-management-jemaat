@@ -21,6 +21,7 @@ import { useKeluargaQuery } from "../hooks/use-keluarga-query";
 import type { KeluargaListItem } from "../types";
 import { DeleteKeluargaDialog } from "./delete-keluarga-dialog";
 import { getKeluargaColumns } from "./keluarga-columns";
+import { KeluargaDetailDialog } from "./keluarga-detail-dialog";
 import { KeluargaFormDialog } from "./keluarga-form-dialog";
 
 const allowedSortFields = [
@@ -63,6 +64,8 @@ export function KeluargaTable({ canManage, canViewNomorKK }: KeluargaTableProps)
 
   const [formOpen, setFormOpen] = useState(false);
 
+  const [detailOpen, setDetailOpen] = useState(false);
+
   const [deleteOpen, setDeleteOpen] = useState(false);
 
   const [selectedKeluarga, setSelectedKeluarga] = useState<KeluargaListItem | null>(null);
@@ -89,6 +92,10 @@ export function KeluargaTable({ canManage, canViewNomorKK }: KeluargaTableProps)
       getKeluargaColumns({
         canManage,
         canViewNomorKK,
+        onDetail: (keluarga) => {
+          setSelectedKeluarga(keluarga);
+          setDetailOpen(true);
+        },
         onEdit: (keluarga) => {
           setSelectedKeluarga(keluarga);
           setFormOpen(true);
@@ -212,6 +219,19 @@ export function KeluargaTable({ canManage, canViewNomorKK }: KeluargaTableProps)
             ) : null}
           </div>
         )}
+      />
+
+      <KeluargaDetailDialog
+        open={detailOpen}
+        keluarga={selectedKeluarga}
+        canViewNomorKK={canViewNomorKK}
+        onOpenChange={(open) => {
+          setDetailOpen(open);
+
+          if (!open) {
+            setSelectedKeluarga(null);
+          }
+        }}
       />
 
       <KeluargaFormDialog

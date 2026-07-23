@@ -1,7 +1,7 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { Eye, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 
 import { DataTableColumnHeader } from "@/components/data-table";
 import { Badge } from "@/components/ui/badge";
@@ -10,7 +10,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -19,12 +18,14 @@ import type { WilayahListItem } from "../types";
 
 type WilayahColumnsOptions = {
   canManage: boolean;
+  onDetail: (wilayah: WilayahListItem) => void;
   onEdit: (wilayah: WilayahListItem) => void;
   onDelete: (wilayah: WilayahListItem) => void;
 };
 
 export function getWilayahColumns({
   canManage,
+  onDetail,
   onEdit,
   onDelete,
 }: WilayahColumnsOptions): ColumnDef<WilayahListItem>[] {
@@ -70,10 +71,8 @@ export function getWilayahColumns({
 
       cell: ({ row }) => <Badge variant="secondary">{row.original.jumlahJemaat}</Badge>,
     },
-  ];
 
-  if (canManage) {
-    column.push({
+    {
       id: "actions",
       enableSorting: false,
       enableHiding: false,
@@ -85,33 +84,52 @@ export function getWilayahColumns({
           <div className="flex justify-end">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button type="button" variant="ghost" size="icon">
+                <Button type="button" variant="ghost" size="icon" aria-label="Tindakan Wilayah">
                   <MoreHorizontal />
-                  <span className="sr-only">Buka menu</span>
                 </Button>
               </DropdownMenuTrigger>
 
               <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Tindakan</DropdownMenuLabel>
-
-                <DropdownMenuSeparator />
-
-                <DropdownMenuItem onClick={() => onEdit(wilayah)}>
-                  <Pencil />
-                  Edit
+                <DropdownMenuItem
+                  onClick={() => {
+                    onDetail(wilayah);
+                  }}
+                >
+                  <Eye />
+                  Detail
                 </DropdownMenuItem>
 
-                <DropdownMenuItem variant="destructive" onClick={() => onDelete(wilayah)}>
-                  <Trash2 />
-                  Hapus
-                </DropdownMenuItem>
+                {canManage ? (
+                  <>
+                    <DropdownMenuSeparator />
+
+                    <DropdownMenuItem
+                      onClick={() => {
+                        onEdit(wilayah);
+                      }}
+                    >
+                      <Pencil />
+                      Edit
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem
+                      className="text-destructive focus:text-destructive"
+                      onClick={() => {
+                        onDelete(wilayah);
+                      }}
+                    >
+                      <Trash2 />
+                      Hapus
+                    </DropdownMenuItem>
+                  </>
+                ) : null}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
         );
       },
-    });
-  }
+    },
+  ];
 
   return column;
 }
