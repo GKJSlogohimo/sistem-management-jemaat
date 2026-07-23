@@ -2,12 +2,14 @@ import "./globals.css";
 
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import NextTopLoader from "nextjs-toploader";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryProvider } from "@/providers/query-provider";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -45,7 +47,22 @@ export default function RootLayout({
         >
           <NuqsAdapter>
             <QueryProvider>
-              <TooltipProvider>{children}</TooltipProvider>
+              <TooltipProvider>
+                <NextTopLoader
+                  color="#2563eb"
+                  initialPosition={0.08}
+                  crawlSpeed={200}
+                  height={3}
+                  crawl
+                  showSpinner={false}
+                  easing="ease"
+                  speed={200}
+                  shadow={false}
+                  zIndex={9999}
+                  showAtBottom={false}
+                />
+                {children}
+              </TooltipProvider>
             </QueryProvider>
           </NuqsAdapter>
           <Toaster richColors position="top-right" />

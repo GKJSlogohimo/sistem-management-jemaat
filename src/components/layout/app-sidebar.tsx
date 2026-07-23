@@ -18,7 +18,7 @@ import {
   Users,
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import type { ComponentProps } from "react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -235,6 +235,7 @@ function getInitials(name: string) {
 }
 
 export function AppSidebar({ user, ...props }: AppSidebarProps) {
+  const router = useRouter();
   const pathname = usePathname();
 
   const { isMobile, setOpenMobile } = useSidebar();
@@ -263,7 +264,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
         throw new Error(result.error.message ?? "Gagal keluar dari aplikasi.");
       }
 
-      window.location.replace("/login");
+      router.replace("/login");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Gagal keluar dari aplikasi.");
 

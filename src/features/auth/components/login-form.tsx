@@ -3,6 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LoaderCircle } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
@@ -25,6 +26,7 @@ import { getAuthErrorMessage } from "../lib/get-auth-error-message";
 import { type LoginInput, loginSchema } from "../schemas/auth.schema";
 
 export function LoginForm() {
+  const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
   useState<string | null>(null);
 
@@ -59,7 +61,7 @@ export function LoginForm() {
 
       setIsRedirecting(true);
 
-      window.location.replace("/dashboard");
+      router.replace("/dashboard");
     } catch {
       setIsRedirecting(false);
 
