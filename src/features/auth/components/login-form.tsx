@@ -1,8 +1,8 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { LoaderCircle } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
@@ -25,8 +25,8 @@ import { getAuthErrorMessage } from "../lib/get-auth-error-message";
 import { type LoginInput, loginSchema } from "../schemas/auth.schema";
 
 export function LoginForm() {
-  const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
+  useState<string | null>(null);
 
   const form = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
@@ -39,23 +39,35 @@ export function LoginForm() {
 
   const isSubmitting = form.formState.isSubmitting;
 
+  const [isRedirecting, setIsRedirecting] = useState(false);
+
   async function onSubmit(values: LoginInput) {
     setServerError(null);
 
-    const { error } = await authClient.signIn.email({
-      email: values.email,
-      password: values.password,
-      rememberMe: values.rememberMe,
-    });
+    try {
+      const { error } = await authClient.signIn.email({
+        email: values.email,
+        password: values.password,
+        rememberMe: values.rememberMe,
+      });
 
-    if (error) {
-      setServerError(getAuthErrorMessage(error.code));
-      return;
+      if (error) {
+        setServerError(getAuthErrorMessage(error.code));
+
+        return;
+      }
+
+      setIsRedirecting(true);
+
+      window.location.replace("/dashboard");
+    } catch {
+      setIsRedirecting(false);
+
+      setServerError("Terjadi gangguan saat masuk. Silakan coba kembali.");
     }
-
-    router.replace("/dashboard");
-    router.refresh();
   }
+
+  const isLoading = form.formState.isSubmitting || isRedirecting;
 
   return (
     <Card className="w-full max-w-md">
@@ -158,9 +170,16 @@ export function LoginForm() {
                 </Field>
               )}
             />
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? (
+                <>
+                  <LoaderCircle className="animate-spin" />
 
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? "Sedang masuk..." : "Masuk"}
+                  {isRedirecting ? "Membuka dashboard..." : "Memverifikasi..."}
+                </>
+              ) : (
+                "Masuk"
+              )}
             </Button>
           </FieldGroup>
         </form>

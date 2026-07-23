@@ -2,24 +2,24 @@ import type { ReactNode } from "react";
 
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { requireActivePageProfile } from "@/lib/auth/require-page-profile";
+import { requireAuthenticatedPage } from "@/lib/auth/require-page-role";
 
 type DashboardLayoutProps = {
   children: ReactNode;
 };
 
 export default async function DashboardLayout({ children }: DashboardLayoutProps) {
-  const actor = await requireActivePageProfile();
+  const authContext = await requireAuthenticatedPage();
 
   return (
     <SidebarProvider>
       <AppSidebar
         user={{
-          name: actor.session.user.name ?? "Pengguna",
+          name: authContext.session.user.name ?? "Pengguna",
 
-          email: actor.session.user.email ?? null,
+          email: authContext.session.user.email ?? null,
 
-          peran: actor.profile.peran,
+          peran: authContext.profile.peran,
         }}
       />
 

@@ -38,5 +38,8 @@ export function useJemaatPernikahanOptionsQuery(
     queryKey: pernikahanKeys.jemaatOption(params),
     queryFn: () => getJemaatPernikahanOptions(params),
     enabled,
+    staleTime: 5 * 60_000,
+    gcTime: 15 * 60_000,
+    refetchOnWindowFocus: false,
   });
 }

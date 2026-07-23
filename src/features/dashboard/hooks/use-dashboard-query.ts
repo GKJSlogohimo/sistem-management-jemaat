@@ -9,7 +9,13 @@ export function useDashboardSummaryQuery() {
   return useQuery({
     queryKey: dashboardKeys.summary(),
     queryFn: getDashboardSummaryRequest,
+
     staleTime: 60_000,
+    gcTime: 5 * 60_000,
+
     refetchOnWindowFocus: false,
+    refetchOnReconnect: true,
+
+    retry: 1,
   });
 }

@@ -22,7 +22,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 import { useDashboardSummaryQuery } from "../hooks/use-dashboard-query";
 import type { DashboardActivityType, DashboardRecentActivity } from "../types";
-import type { DashboardSummary as DashboardSummaryData } from "../types";
 
 const numberFormatter = new Intl.NumberFormat("id-ID");
 
@@ -145,11 +144,7 @@ function RecentActivity({ activity }: { activity: DashboardRecentActivity }) {
   );
 }
 
-type DashboardSummaryProps = {
-  summary: DashboardSummaryData;
-};
-
-export function DashboardSummary({ summary }: DashboardSummaryProps) {
+export function DashboardSummary() {
   const query = useDashboardSummaryQuery();
 
   if (query.isPending) {
@@ -180,10 +175,10 @@ export function DashboardSummary({ summary }: DashboardSummaryProps) {
     );
   }
 
-  const totalGender = summary.gender.lakiLaki + summary.gender.perempuan;
+  const totalGender = query.data.data.gender.lakiLaki + query.data.data.gender.perempuan;
 
   const malePercentage =
-    totalGender > 0 ? Math.round((summary.gender.lakiLaki / totalGender) * 100) : 0;
+    totalGender > 0 ? Math.round((query.data.data.gender.lakiLaki / totalGender) * 100) : 0;
 
   const femalePercentage = totalGender > 0 ? 100 - malePercentage : 0;
 
@@ -192,7 +187,7 @@ export function DashboardSummary({ summary }: DashboardSummaryProps) {
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <MetricCard
           title="Total Jemaat"
-          value={summary.totals.jemaat}
+          value={query.data.data.totals.jemaat}
           description="Seluruh data Jemaat yang tercatat"
           icon={<Users className="size-5" />}
           href="/jemaat"
@@ -200,7 +195,7 @@ export function DashboardSummary({ summary }: DashboardSummaryProps) {
 
         <MetricCard
           title="Jemaat Aktif"
-          value={summary.totals.jemaatAktif}
+          value={query.data.data.totals.jemaatAktif}
           description="Jemaat dengan status keanggotaan aktif"
           icon={<UserCheck className="size-5" />}
           href="/jemaat?status=AKTIF"
@@ -208,7 +203,7 @@ export function DashboardSummary({ summary }: DashboardSummaryProps) {
 
         <MetricCard
           title="Jemaat Tidak Aktif"
-          value={summary.totals.jemaatTidakAktif}
+          value={query.data.data.totals.jemaatTidakAktif}
           description="Jemaat pindah, keluar, meninggal, atau tidak aktif"
           icon={<UserX className="size-5" />}
           href="/jemaat?status=TIDAK_AKTIF"
@@ -216,7 +211,7 @@ export function DashboardSummary({ summary }: DashboardSummaryProps) {
 
         <MetricCard
           title="Keluarga"
-          value={summary.totals.keluarga}
+          value={query.data.data.totals.keluarga}
           description="Jumlah keluarga yang tercatat"
           icon={<House className="size-5" />}
           href="/keluarga"
@@ -224,7 +219,7 @@ export function DashboardSummary({ summary }: DashboardSummaryProps) {
 
         <MetricCard
           title="Wilayah"
-          value={summary.totals.wilayah}
+          value={query.data.data.totals.wilayah}
           description="Wilayah pelayanan aktif"
           icon={<MapPinned className="size-5" />}
           href="/wilayah"
@@ -232,7 +227,7 @@ export function DashboardSummary({ summary }: DashboardSummaryProps) {
 
         <MetricCard
           title="Unit Gereja"
-          value={summary.totals.unitGereja}
+          value={query.data.data.totals.unitGereja}
           description="Unit induk dan subinduk aktif"
           icon={<Church className="size-5" />}
           href="/unit-gereja"
@@ -241,24 +236,24 @@ export function DashboardSummary({ summary }: DashboardSummaryProps) {
 
       <div className="grid gap-4 md:grid-cols-3">
         <MetricCard
-          title={`Baptisan ${summary.currentYear}`}
-          value={summary.currentYearRecords.baptisan}
+          title={`Baptisan ${query.data.data.currentYear}`}
+          value={query.data.data.currentYearRecords.baptisan}
           description="Pencatatan Baptisan dan Sidi tahun berjalan"
           icon={<Droplets className="size-5" />}
           href="/baptisan"
         />
 
         <MetricCard
-          title={`Pernikahan ${summary.currentYear}`}
-          value={summary.currentYearRecords.pernikahan}
+          title={`Pernikahan ${query.data.data.currentYear}`}
+          value={query.data.data.currentYearRecords.pernikahan}
           description="Pencatatan Pernikahan tahun berjalan"
           icon={<HeartHandshake className="size-5" />}
           href="/pernikahan"
         />
 
         <MetricCard
-          title={`Kematian ${summary.currentYear}`}
-          value={summary.currentYearRecords.kematian}
+          title={`Kematian ${query.data.data.currentYear}`}
+          value={query.data.data.currentYearRecords.kematian}
           description="Pencatatan Kematian terverifikasi tahun berjalan"
           icon={<Cross className="size-5" />}
           href="/kematian"
@@ -279,7 +274,7 @@ export function DashboardSummary({ summary }: DashboardSummaryProps) {
                 <span>Laki-laki</span>
 
                 <span className="font-medium">
-                  {formatNumber(summary.gender.lakiLaki)}
+                  {formatNumber(query.data.data.gender.lakiLaki)}
                   {" · "}
                   {malePercentage}%
                 </span>
@@ -300,7 +295,7 @@ export function DashboardSummary({ summary }: DashboardSummaryProps) {
                 <span>Perempuan</span>
 
                 <span className="font-medium">
-                  {formatNumber(summary.gender.perempuan)}
+                  {formatNumber(query.data.data.gender.perempuan)}
                   {" · "}
                   {femalePercentage}%
                 </span>
@@ -332,9 +327,9 @@ export function DashboardSummary({ summary }: DashboardSummaryProps) {
           </CardHeader>
 
           <CardContent>
-            {summary.recentActivities.length > 0 ? (
+            {query.data.data.recentActivities.length > 0 ? (
               <div className="divide-y">
-                {summary.recentActivities.map((activity) => (
+                {query.data.data.recentActivities.map((activity) => (
                   <RecentActivity key={`${activity.type}-${activity.id}`} activity={activity} />
                 ))}
               </div>

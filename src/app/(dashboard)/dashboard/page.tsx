@@ -1,19 +1,9 @@
 import { DashboardSummary } from "@/features/dashboard/components/dashboard-summary";
-import { getDashboardSummary } from "@/features/dashboard/server/dashboard.service";
 import { DASHBOARD_READ_ROLES } from "@/lib/auth/access-roles";
-import type { AppActor } from "@/lib/auth/actor";
 import { requirePageRoles } from "@/lib/auth/require-page-role";
 
 export default async function DashboardPage() {
-  const authActor = await requirePageRoles(DASHBOARD_READ_ROLES);
-
-  const actor: AppActor = {
-    userId: authActor.session.user.id,
-    peran: authActor.profile.peran,
-    unitGerejaId: authActor.profile.unitGerejaId,
-  };
-
-  const summary = await getDashboardSummary(actor);
+  await requirePageRoles(DASHBOARD_READ_ROLES);
 
   return (
     <div className="space-y-6">
@@ -25,7 +15,7 @@ export default async function DashboardPage() {
         </p>
       </div>
 
-      <DashboardSummary summary={summary} />
+      <DashboardSummary />
     </div>
   );
 }

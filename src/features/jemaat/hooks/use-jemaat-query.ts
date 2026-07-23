@@ -21,7 +21,9 @@ export function useWilayahOptionsQuery(unitGerejaId?: string) {
     queryKey: jemaatKeys.wilayahOptions(unitGerejaId),
     queryFn: () => getWilayahOptions(unitGerejaId!),
     enabled: Boolean(unitGerejaId),
-    staleTime: 5 * 60 * 1000,
+    staleTime: 5 * 60_000,
+    gcTime: 15 * 60_000,
+    refetchOnWindowFocus: false,
   });
 }
 
@@ -30,6 +32,8 @@ export function useKeluargaOptionsQuery(unitGerejaId?: string) {
     queryKey: jemaatKeys.keluargaOptions(unitGerejaId),
     queryFn: () => getKeluargaOptions(unitGerejaId!),
     enabled: Boolean(unitGerejaId),
-    staleTime: 5 * 60 * 1000,
+    staleTime: 5 * 60_000,
+    gcTime: 15 * 60_000,
+    refetchOnWindowFocus: false,
   });
 }

@@ -31,5 +31,8 @@ export function useJemaatKematianOptionsQuery(params: JemaatKematianOptionsParam
     queryKey: kematianKeys.jemaatOption(params),
     queryFn: () => getJemaatKematianOptions(params),
     enabled,
+    staleTime: 5 * 60_000,
+    gcTime: 15 * 60_000,
+    refetchOnWindowFocus: false,
   });
 }

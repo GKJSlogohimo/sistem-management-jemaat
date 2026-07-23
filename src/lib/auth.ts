@@ -96,6 +96,15 @@ export const auth = betterAuth({
     joins: true,
   },
   session: {
+    cookieCache: {
+      enabled: true,
+
+      // Session diverifikasi ulang ke database setiap 60 detik.
+      maxAge: 60,
+
+      // Format paling kecil dan cepat untuk pemakaian internal.
+      strategy: "compact",
+    },
     expiresIn: 60 * 60 * 24 * 7,
     updateAge: 60 * 60 * 24,
   },

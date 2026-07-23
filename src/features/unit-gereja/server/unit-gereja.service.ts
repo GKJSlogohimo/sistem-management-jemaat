@@ -198,32 +198,35 @@ function getOrderBy(
 export async function getUnitGerejaList(params: UnitGerejaListParams) {
   const { q, page, pageSize, sortBy, sortOrder } = params;
 
+  const normalizedQuery = q.trim();
+
   const where: Prisma.UnitGerejaWhereInput = {
     deletedAt: null,
-    ...(q
+
+    ...(normalizedQuery
       ? {
           OR: [
             {
               kode: {
-                contains: q,
+                contains: normalizedQuery,
                 mode: "insensitive",
               },
             },
             {
               nama: {
-                contains: q,
+                contains: normalizedQuery,
                 mode: "insensitive",
               },
             },
             {
               alamat: {
-                contains: q,
+                contains: normalizedQuery,
                 mode: "insensitive",
               },
             },
             {
               penanggungJawab: {
-                contains: q,
+                contains: normalizedQuery,
                 mode: "insensitive",
               },
             },
@@ -232,21 +235,18 @@ export async function getUnitGerejaList(params: UnitGerejaListParams) {
       : {}),
   };
 
-  const [data, total] = await prisma.$transaction([
-    prisma.unitGereja.findMany({
-      where,
-      select: unitGerejaSelect,
-      orderBy: getOrderBy(sortBy, sortOrder),
-      skip: (page - 1) * pageSize,
-      take: pageSize,
-    }),
+  const rows = await prisma.unitGereja.findMany({
+    where,
+    select: unitGerejaSelect,
+    orderBy: getOrderBy(sortBy, sortOrder),
+  });
 
-    prisma.unitGereja.count({
-      where,
-    }),
-  ]);
-
+  const total = rows.length;
   const totalPages = Math.ceil(total / pageSize);
+
+  const startIndex = (page - 1) * pageSize;
+
+  const data = rows.slice(startIndex, startIndex + pageSize);
 
   return {
     data: data.map(mapUnitGereja),
