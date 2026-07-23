@@ -33,5 +33,6 @@ export const config = {
     "/pengguna/:path*",
     "/kategori-event/:path*",
     "/event/:path*",
+    "/baptisan/:path*",
   ],
 };

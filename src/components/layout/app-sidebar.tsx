@@ -5,6 +5,7 @@ import {
   Building2,
   CalendarDays,
   Church,
+  Droplets,
   House,
   LayoutDashboard,
   LoaderCircle,
@@ -36,6 +37,7 @@ import {
 import { PeranPengguna } from "@/generated/prisma/enums";
 import {
   type AllowedRoles,
+  BAPTISAN_READ_ROLES,
   EVENT_READ_ROLES,
   hasAnyRole,
   JEMAAT_READ_ROLES,
@@ -120,6 +122,13 @@ const navigationGroups: NavigationGroup[] = [
         href: "/jemaat",
         icon: Users,
         roles: JEMAAT_READ_ROLES,
+      },
+
+      {
+        title: "Baptisan",
+        href: "/baptisan",
+        icon: Droplets,
+        roles: BAPTISAN_READ_ROLES,
       },
     ],
   },
