@@ -6,6 +6,18 @@ export function hasAnyRole(role: PeranPengguna, allowedRoles: AllowedRoles) {
   return allowedRoles.some((allowedRole) => allowedRole === role);
 }
 
+export const DASHBOARD_READ_ROLES = [
+  PeranPengguna.SUPER_ADMIN,
+  PeranPengguna.ADMIN_INDUK,
+  PeranPengguna.ADMIN_SUB_INDUK,
+  PeranPengguna.SEKRETARIAT,
+  PeranPengguna.PANITIA_EVENT,
+  PeranPengguna.PETUGAS_REGISTRASI,
+  PeranPengguna.PETUGAS_ANTREAN,
+  PeranPengguna.PELAYAN,
+  PeranPengguna.VIEWER,
+] as const;
+
 export const KEMATIAN_READ_ROLES = [
   PeranPengguna.SUPER_ADMIN,
   PeranPengguna.ADMIN_INDUK,
