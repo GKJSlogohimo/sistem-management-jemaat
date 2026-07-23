@@ -6,6 +6,7 @@ import {
   CalendarDays,
   Church,
   Droplets,
+  HeartHandshake,
   House,
   LayoutDashboard,
   LoaderCircle,
@@ -44,6 +45,7 @@ import {
   KATEGORI_EVENT_READ_ROLES,
   KELUARGA_READ_ROLES,
   PENGGUNA_READ_ROLES,
+  PERNIKAHAN_READ_ROLES,
   UNIT_GEREJA_READ_ROLES,
   WILAYAH_READ_ROLES,
 } from "@/lib/auth/access-roles";
@@ -129,6 +131,13 @@ const navigationGroups: NavigationGroup[] = [
         href: "/baptisan",
         icon: Droplets,
         roles: BAPTISAN_READ_ROLES,
+      },
+
+      {
+        title: "Pernikahan",
+        href: "/pernikahan",
+        icon: HeartHandshake,
+        roles: PERNIKAHAN_READ_ROLES,
       },
     ],
   },

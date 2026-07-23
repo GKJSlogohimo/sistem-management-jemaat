@@ -6,6 +6,23 @@ export function hasAnyRole(role: PeranPengguna, allowedRoles: AllowedRoles) {
   return allowedRoles.some((allowedRole) => allowedRole === role);
 }
 
+export const PERNIKAHAN_READ_ROLES = [
+  PeranPengguna.SUPER_ADMIN,
+  PeranPengguna.ADMIN_INDUK,
+  PeranPengguna.ADMIN_SUB_INDUK,
+  PeranPengguna.SEKRETARIAT,
+  PeranPengguna.PELAYAN,
+  PeranPengguna.VIEWER,
+] as const;
+
+export const PERNIKAHAN_WRITE_ROLES = [
+  PeranPengguna.SUPER_ADMIN,
+  PeranPengguna.ADMIN_INDUK,
+  PeranPengguna.ADMIN_SUB_INDUK,
+  PeranPengguna.SEKRETARIAT,
+  PeranPengguna.PELAYAN,
+] as const;
+
 export const BAPTISAN_READ_ROLES = [
   PeranPengguna.SUPER_ADMIN,
   PeranPengguna.ADMIN_INDUK,

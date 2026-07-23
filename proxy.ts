@@ -34,5 +34,6 @@ export const config = {
     "/kategori-event/:path*",
     "/event/:path*",
     "/baptisan/:path*",
+    "/pernikahan/:path*",
   ],
 };
